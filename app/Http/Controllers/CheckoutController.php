@@ -1021,8 +1021,8 @@ class CheckoutController extends Controller
             'bankName' => 'nullable|string|max:100',
             'bankAccountName' => 'nullable|string|max:255',
             'bankAccountNumber' => 'nullable|string|max:50',
-            // Optional e-wallet phone for GCash/Maya
-            'ewalletPhone' => 'nullable|string|max:20',
+            // Required e-wallet phone for GCash/Maya
+            'ewalletPhone' => 'required_if:paymentMethod,gcash,maya|nullable|regex:/^(\+?63|0)?9\d{9}$/',
             // Optional payment notes
             'paymentNotes' => 'nullable|string|max:1000',
         ], [
@@ -1034,6 +1034,8 @@ class CheckoutController extends Controller
             'senderName.required' => 'Kailangan ang pangalan ng nagbayad.',
             'amountPaid.required' => 'Kailangan ang halaga ng binayaran.',
             'amountPaid.min' => 'Ang halaga ng binayaran ay dapat hindi bababa sa ₱' . number_format($orderTotal, 2) . '.',
+            'ewalletPhone.required_if' => 'Kailangan ang GCash/Maya number na ginamit.',
+            'ewalletPhone.regex' => 'Invalid phone format. Use 09XXXXXXXXX format.',
         ]);
 
         if ($validator->fails()) {

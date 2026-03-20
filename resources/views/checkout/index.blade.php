@@ -515,7 +515,7 @@
                         <div class="grid md:grid-cols-{{ min(count($paymentSettings->methods), 3) }} gap-4">
                             @foreach($paymentSettings->methods as $methodKey => $method)
                             <!-- {{ $method['name'] }} -->
-                            <div @click="form.paymentMethod = '{{ $methodKey }}'" class="payment-method" :class="{'selected': form.paymentMethod === '{{ $methodKey }}'}">
+                            <div @click="form.paymentMethod = '{{ $methodKey }}'; errors.ewalletPhone = ''; errors.paymentScreenshot = '';" class="payment-method" :class="{'selected': form.paymentMethod === '{{ $methodKey }}'}">
                                 <div class="flex items-center gap-3 mb-2">
                                     @if($method['icon'] === 'bank')
                                     <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -767,16 +767,23 @@
                         <div x-show="form.paymentMethod === 'gcash' || form.paymentMethod === 'maya'" x-transition class="bg-blue-50 border border-blue-200 rounded-xl p-5">
                             <h4 class="font-semibold text-blue-800 mb-4 flex items-center gap-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                                <span x-text="form.paymentMethod === 'gcash' ? 'GCash Details' : 'Maya Details'"></span> (Optional)
+                                <span x-text="form.paymentMethod === 'gcash' ? 'GCash Details' : 'Maya Details'"></span>
                             </h4>
                             <div>
                                 <label class="form-label text-sm">
                                     <span x-text="form.paymentMethod === 'gcash' ? 'GCash Number na Ginamit' : 'Maya Number na Ginamit'"></span>
+                                    <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" x-model="form.ewalletPhone"
+                                       @input="validateField('ewalletPhone')"
                                        class="form-input"
+                                       :class="{'error': errors.ewalletPhone, 'success': form.ewalletPhone && !errors.ewalletPhone}"
                                        placeholder="e.g., 09171234567">
-                                <p class="text-blue-600 text-sm mt-2">Ito ay para mas madali ma-verify ang iyong payment.</p>
+                                <p x-show="errors.ewalletPhone" class="form-error">
+                                    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    <span x-text="errors.ewalletPhone"></span>
+                                </p>
+                                <p x-show="!errors.ewalletPhone" class="text-blue-600 text-sm mt-2">Kailangan ito para ma-verify ang iyong payment.</p>
                             </div>
                         </div>
 
@@ -1060,6 +1067,7 @@ function checkoutWizard() {
             senderName: '',
             amountPaid: '',
             paymentScreenshot: '',
+            ewalletPhone: '',
         },
 
         // Computed property: show registration fields for new emails
@@ -1172,6 +1180,26 @@ function checkoutWizard() {
                         this.errors.amountPaid = 'Kailangan ang halaga.';
                     } else if (parseFloat(this.form.amountPaid) <= 0) {
                         this.errors.amountPaid = 'Invalid amount.';
+                    }
+                    break;
+                case 'ewalletPhone':
+                    // Only validate if payment method is gcash or maya
+                    if (this.form.paymentMethod === 'gcash' || this.form.paymentMethod === 'maya') {
+                        if (!this.form.ewalletPhone.trim()) {
+                            this.errors.ewalletPhone = this.form.paymentMethod === 'gcash'
+                                ? 'Kailangan ang GCash number.'
+                                : 'Kailangan ang Maya number.';
+                        } else if (!this.isValidPhone(this.form.ewalletPhone)) {
+                            this.errors.ewalletPhone = 'Invalid phone format. Use 09XXXXXXXXX.';
+                        }
+                    }
+                    break;
+                case 'referenceOrScreenshot':
+                    // Either reference number or screenshot is required
+                    if (!this.form.referenceNumber.trim() && !this.uploadedFile) {
+                        this.errors.paymentScreenshot = 'Kailangan ang reference number o screenshot.';
+                    } else {
+                        this.errors.paymentScreenshot = '';
                     }
                     break;
             }
@@ -1444,10 +1472,15 @@ function checkoutWizard() {
         },
 
         async submitPayment() {
+            // Validate required fields
             ['senderName', 'amountPaid'].forEach(f => this.validateField(f));
 
-            if (!this.form.referenceNumber && !this.uploadedFile) {
-                this.errors.paymentScreenshot = 'Kailangan ang reference number o screenshot.';
+            // Validate reference number or screenshot (one is required)
+            this.validateField('referenceOrScreenshot');
+
+            // Validate e-wallet phone for GCash/Maya
+            if (this.form.paymentMethod === 'gcash' || this.form.paymentMethod === 'maya') {
+                this.validateField('ewalletPhone');
             }
 
             if (Object.values(this.errors).some(e => e)) {
