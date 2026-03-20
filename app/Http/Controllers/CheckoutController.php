@@ -1011,7 +1011,10 @@ class CheckoutController extends Controller
 
         $orderTotal = $order->grandTotal;
 
-        $validator = Validator::make($request->all(), [
+        // Check if e-wallet payment requires phone number
+        $isEwalletPayment = in_array($request->paymentMethod, ['gcash', 'maya']);
+
+        $rules = [
             'paymentMethod' => 'required|in:bank,gcash,maya,paypal',
             'referenceNumber' => 'required_without:paymentScreenshot|nullable|string|max:100',
             'paymentScreenshot' => 'required_without:referenceNumber|nullable|image|max:5120', // 5MB max
@@ -1021,11 +1024,18 @@ class CheckoutController extends Controller
             'bankName' => 'nullable|string|max:100',
             'bankAccountName' => 'nullable|string|max:255',
             'bankAccountNumber' => 'nullable|string|max:50',
-            // Required e-wallet phone for GCash/Maya
-            'ewalletPhone' => 'required_if:paymentMethod,gcash,maya|nullable|regex:/^(\+?63|0)?9\d{9}$/',
             // Optional payment notes
             'paymentNotes' => 'nullable|string|max:1000',
-        ], [
+        ];
+
+        // Add e-wallet phone validation only for GCash/Maya
+        if ($isEwalletPayment) {
+            $rules['ewalletPhone'] = ['required', 'regex:/^(\+?63|0)?9\d{9}$/'];
+        } else {
+            $rules['ewalletPhone'] = 'nullable|string|max:20';
+        }
+
+        $validator = Validator::make($request->all(), $rules, [
             'paymentMethod.required' => 'Pumili ng payment method.',
             'referenceNumber.required_without' => 'Kailangan ang reference number o screenshot ng payment.',
             'paymentScreenshot.required_without' => 'Kailangan ang screenshot ng payment o reference number.',
@@ -1034,7 +1044,7 @@ class CheckoutController extends Controller
             'senderName.required' => 'Kailangan ang pangalan ng nagbayad.',
             'amountPaid.required' => 'Kailangan ang halaga ng binayaran.',
             'amountPaid.min' => 'Ang halaga ng binayaran ay dapat hindi bababa sa ₱' . number_format($orderTotal, 2) . '.',
-            'ewalletPhone.required_if' => 'Kailangan ang GCash/Maya number na ginamit.',
+            'ewalletPhone.required' => 'Kailangan ang GCash/Maya number na ginamit.',
             'ewalletPhone.regex' => 'Invalid phone format. Use 09XXXXXXXXX format.',
         ]);
 
@@ -1131,15 +1141,11 @@ class CheckoutController extends Controller
                 'updated_at' => now(),
             ]);
 
-            // Generate a confirmation token for the unique confirmation page
-            $confirmationToken = Str::random(32);
-
-            DB::table('ecom_orders')
+            // Get the existing recovery token for the confirmation page URL
+            // (already generated in stepOne, so we reuse it)
+            $confirmationToken = DB::table('ecom_orders')
                 ->where('id', $orderId)
-                ->update([
-                    'confirmationToken' => $confirmationToken,
-                    'updated_at' => now(),
-                ]);
+                ->value('recoveryToken');
 
             // Clear checkout session
             session()->forget([
@@ -1927,9 +1933,9 @@ class CheckoutController extends Controller
      */
     public function showConfirmation($token)
     {
-        // Find order by confirmation token
+        // Find order by recovery token (used for both recovery and confirmation)
         $order = DB::table('ecom_orders')
-            ->where('confirmationToken', $token)
+            ->where('recoveryToken', $token)
             ->where('deleteStatus', 1)
             ->first();
 
