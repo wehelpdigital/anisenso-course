@@ -27,6 +27,7 @@ Route::get('/about', function () {
 
 // Blog routes - fetch from as_blogs table
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/api/blog/posts', [BlogController::class, 'apiIndex'])->name('blog.api');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
 Route::get('/unladsaka-rhizocote-micronutrient-fertilizer-for-crops-high-yield', function () {

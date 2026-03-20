@@ -26,6 +26,16 @@
     .blog-image img { transition: transform 0.5s ease; }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .line-clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
 </style>
 @endpush
 
@@ -78,21 +88,21 @@
                 <span>Featured Article</span>
             </div>
 
-            @php $featured = $featuredPosts->first(); @endphp
+            @php
+                $featured = $featuredPosts->first();
+                $btcCheckUrl = rtrim(config('app.btc_check_url'), '/');
+                $placeholderImages = [
+                    'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&h=600&fit=crop',
+                    'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop',
+                ];
+                $featuredImage = $featured->blogFeaturedImage
+                    ? $btcCheckUrl . '/' . ltrim($featured->blogFeaturedImage, '/')
+                    : $placeholderImages[0];
+            @endphp
             <a href="{{ route('blog.show', $featured->blogSlug) }}" class="group block transition-all duration-700 delay-100"
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center bg-gray-50 rounded-3xl overflow-hidden">
-                    @php
-                        $btcCheckUrl = rtrim(config('app.btc_check_url'), '/');
-                        $placeholderImages = [
-                            'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&h=600&fit=crop',
-                            'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&h=600&fit=crop',
-                            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop',
-                        ];
-                        $featuredImage = $featured->blogFeaturedImage
-                            ? $btcCheckUrl . '/' . ltrim($featured->blogFeaturedImage, '/')
-                            : $placeholderImages[0];
-                    @endphp
                     <div class="blog-image aspect-[4/3] lg:aspect-auto lg:h-[400px]">
                         <img src="{{ $featuredImage }}" alt="{{ $featured->blogTitle }}" class="w-full h-full object-cover">
                     </div>
@@ -118,87 +128,126 @@
 @endif
 
 <!-- Blog Grid Section -->
-<section class="py-16 bg-gray-100" x-data="{ shown: false, category: '{{ request('category', 'all') }}' }" x-intersect:enter.once="shown = true">
+<section class="py-16 bg-gray-100" x-data="blogGrid()" x-init="init()">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-12">
-            <div class="transition-all duration-500" :class="shown ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'">
+            <div>
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-900" style="font-family: 'Instrument Sans', sans-serif;">
                     Latest Articles
                 </h2>
                 <p class="text-gray-600 mt-2">Expert insights and farming knowledge</p>
             </div>
             <!-- Category Filter -->
-            <div class="flex flex-wrap gap-2 transition-all duration-500 delay-100" :class="shown ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'">
-                <a href="{{ route('blog.index') }}" class="px-4 py-2 {{ !request('category') || request('category') === 'all' ? 'bg-brand-green text-white' : 'bg-white text-gray-700 hover:bg-brand-green hover:text-white' }} rounded-full text-sm font-medium transition-colors">All</a>
+            <div class="flex flex-wrap gap-2">
+                <button @click="filterByCategory('all')"
+                        :class="activeCategory === 'all' ? 'bg-brand-green text-white' : 'bg-white text-gray-700 hover:bg-brand-green hover:text-white'"
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                    All
+                </button>
                 @foreach($categories as $categoryName => $color)
-                <a href="{{ route('blog.index', ['category' => $categoryName]) }}" class="px-4 py-2 {{ request('category') === $categoryName ? 'bg-brand-green text-white' : 'bg-white text-gray-700 hover:bg-brand-green hover:text-white' }} rounded-full text-sm font-medium transition-colors">{{ $categoryName }}</a>
+                <button @click="filterByCategory('{{ $categoryName }}')"
+                        :class="activeCategory === '{{ $categoryName }}' ? 'bg-brand-green text-white' : 'bg-white text-gray-700 hover:bg-brand-green hover:text-white'"
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                    {{ $categoryName }}
+                </button>
                 @endforeach
             </div>
         </div>
 
-        @if($posts->count() > 0)
+        <!-- Loading State -->
+        <div x-show="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <template x-for="i in 6" :key="i">
+                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <div class="skeleton aspect-[16/10]"></div>
+                    <div class="p-6">
+                        <div class="skeleton h-5 w-20 rounded-full mb-3"></div>
+                        <div class="skeleton h-6 w-full rounded mb-2"></div>
+                        <div class="skeleton h-6 w-3/4 rounded mb-3"></div>
+                        <div class="skeleton h-4 w-full rounded mb-1"></div>
+                        <div class="skeleton h-4 w-2/3 rounded mb-4"></div>
+                        <div class="pt-4 border-t border-gray-100 flex justify-between">
+                            <div class="skeleton h-4 w-20 rounded"></div>
+                            <div class="skeleton h-4 w-16 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
         <!-- Blog Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            @php
-                $btcUrl = rtrim(config('app.btc_check_url'), '/');
-                $placeholders = [
-                    'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1592982537447-6e2bd1b5d0f2?w=600&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=400&fit=crop',
-                    'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=600&h=400&fit=crop',
-                ];
-            @endphp
-            @foreach($posts as $index => $post)
-            @php
-                $postImage = $post->blogFeaturedImage
-                    ? $btcUrl . '/' . ltrim($post->blogFeaturedImage, '/')
-                    : $placeholders[$index % count($placeholders)];
-            @endphp
-            <a href="{{ route('blog.show', $post->blogSlug) }}"
-               class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-500"
-               :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
-               :style="shown ? 'transition-delay: {{ ($index % 6 + 1) * 100 }}ms' : ''">
-                <div class="blog-image aspect-[16/10]">
-                    <img src="{{ $postImage }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
-                </div>
-                <div class="p-6">
-                    <div class="mb-3">
-                        <span class="@if($post->blogCategoryColor === 'brand-green') bg-brand-green/10 text-brand-green @elseif($post->blogCategoryColor === 'brand-yellow') bg-brand-yellow/20 text-brand-dark @elseif($post->blogCategoryColor === 'blue') bg-blue-100 text-blue-700 @else bg-gray-100 text-gray-700 @endif px-3 py-1 rounded-full text-xs font-medium">{{ $post->blogCategory }}</span>
+        <div x-show="!loading && posts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100">
+            <template x-for="(post, index) in posts" :key="post.id">
+                <a :href="post.url"
+                   class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden"
+                   x-show="true"
+                   x-transition:enter="transition ease-out duration-300"
+                   x-transition:enter-start="opacity-0 translate-y-4"
+                   x-transition:enter-end="opacity-100 translate-y-0"
+                   :style="'transition-delay: ' + (index * 50) + 'ms'">
+                    <div class="blog-image aspect-[16/10]">
+                        <img :src="post.imageUrl" :alt="post.blogTitle" class="w-full h-full object-cover">
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-brand-green transition-colors">
-                        {{ $post->blogTitle }}
-                    </h3>
-                    <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">
-                        {{ $post->blogExcerpt }}
-                    </p>
-                    <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
-                        <span class="text-brand-green text-sm font-medium">Read More</span>
-                        @if($post->publishedAt)
-                        <span class="text-gray-400 text-xs">{{ \Carbon\Carbon::parse($post->publishedAt)->format('M j, Y') }}</span>
-                        @endif
+                    <div class="p-6">
+                        <div class="mb-3">
+                            <span :class="getCategoryClass(post.blogCategoryColor)" class="px-3 py-1 rounded-full text-xs font-medium" x-text="post.blogCategory"></span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 hover:text-brand-green transition-colors" x-text="post.blogTitle"></h3>
+                        <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4" x-text="post.blogExcerpt"></p>
+                        <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
+                            <span class="text-brand-green text-sm font-medium">Read More</span>
+                            <span class="text-gray-400 text-xs" x-text="post.formattedDate"></span>
+                        </div>
                     </div>
-                </div>
-            </a>
-            @endforeach
+                </a>
+            </template>
+        </div>
+
+        <!-- No Posts Message -->
+        <div x-show="!loading && posts.length === 0" class="text-center py-16">
+            <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
+            <h3 class="text-xl font-semibold text-gray-600 mb-2">No blog posts found</h3>
+            <p class="text-gray-500">Try selecting a different category or check back later.</p>
         </div>
 
         <!-- Pagination -->
-        @if($posts->hasPages())
-        <div class="flex justify-center mt-12 transition-all duration-500 delay-700"
-             :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
-            {{ $posts->links() }}
+        <div x-show="!loading && pagination.last_page > 1" class="flex justify-center mt-12">
+            <nav class="flex items-center gap-2">
+                <!-- Previous Button -->
+                <button @click="goToPage(pagination.current_page - 1)"
+                        :disabled="pagination.current_page === 1"
+                        :class="pagination.current_page === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-green hover:text-white'"
+                        class="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    Prev
+                </button>
+
+                <!-- Page Numbers -->
+                <template x-for="page in getVisiblePages()" :key="page">
+                    <button @click="page !== '...' && goToPage(page)"
+                            :class="page === pagination.current_page ? 'bg-brand-green text-white' : (page === '...' ? 'cursor-default' : 'bg-white text-gray-700 hover:bg-brand-green hover:text-white')"
+                            class="w-10 h-10 rounded-lg font-medium transition-colors"
+                            x-text="page">
+                    </button>
+                </template>
+
+                <!-- Next Button -->
+                <button @click="goToPage(pagination.current_page + 1)"
+                        :disabled="pagination.current_page === pagination.last_page"
+                        :class="pagination.current_page === pagination.last_page ? 'opacity-50 cursor-not-allowed' : 'hover:bg-brand-green hover:text-white'"
+                        class="px-4 py-2 bg-white text-gray-700 rounded-lg font-medium transition-colors flex items-center gap-1">
+                    Next
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </nav>
         </div>
-        @endif
-        @else
-        <!-- No Posts Message -->
-        <div class="text-center py-16">
-            <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">No blog posts yet</h3>
-            <p class="text-gray-500">Check back soon for new articles and updates!</p>
+
+        <!-- Results Info -->
+        <div x-show="!loading && posts.length > 0" class="text-center mt-6 text-gray-500 text-sm">
+            Showing <span x-text="pagination.from"></span> - <span x-text="pagination.to"></span> of <span x-text="pagination.total"></span> articles
         </div>
-        @endif
     </div>
 </section>
 
@@ -237,3 +286,115 @@
     </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+function blogGrid() {
+    return {
+        posts: [],
+        pagination: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 9,
+            total: 0,
+            from: 0,
+            to: 0
+        },
+        activeCategory: 'all',
+        loading: true,
+
+        init() {
+            this.fetchPosts();
+        },
+
+        async fetchPosts(page = 1) {
+            this.loading = true;
+
+            try {
+                const params = new URLSearchParams({
+                    page: page,
+                    per_page: 9
+                });
+
+                if (this.activeCategory !== 'all') {
+                    params.append('category', this.activeCategory);
+                }
+
+                const response = await fetch(`/api/blog/posts?${params.toString()}`);
+                const data = await response.json();
+
+                this.posts = data.posts;
+                this.pagination = data.pagination;
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        filterByCategory(category) {
+            if (this.activeCategory === category) return;
+            this.activeCategory = category;
+            this.fetchPosts(1);
+
+            // Scroll to blog grid smoothly
+            document.querySelector('.bg-gray-100').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+
+        goToPage(page) {
+            if (page < 1 || page > this.pagination.last_page) return;
+            this.fetchPosts(page);
+
+            // Scroll to blog grid smoothly
+            document.querySelector('.bg-gray-100').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        },
+
+        getVisiblePages() {
+            const pages = [];
+            const current = this.pagination.current_page;
+            const last = this.pagination.last_page;
+
+            if (last <= 7) {
+                for (let i = 1; i <= last; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+
+                if (current > 3) {
+                    pages.push('...');
+                }
+
+                const start = Math.max(2, current - 1);
+                const end = Math.min(last - 1, current + 1);
+
+                for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                }
+
+                if (current < last - 2) {
+                    pages.push('...');
+                }
+
+                pages.push(last);
+            }
+
+            return pages;
+        },
+
+        getCategoryClass(color) {
+            const classes = {
+                'brand-green': 'bg-brand-green/10 text-brand-green',
+                'brand-yellow': 'bg-brand-yellow/20 text-brand-dark',
+                'blue': 'bg-blue-100 text-blue-700',
+                'purple': 'bg-purple-100 text-purple-700',
+                'orange': 'bg-orange-100 text-orange-700',
+                'teal': 'bg-teal-100 text-teal-700',
+                'red': 'bg-red-100 text-red-700'
+            };
+            return classes[color] || 'bg-gray-100 text-gray-700';
+        }
+    }
+}
+</script>
+@endpush

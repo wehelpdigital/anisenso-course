@@ -128,4 +128,59 @@ class BlogController extends Controller
 
         return $colorMap[$color] ?? 'bg-gray-500';
     }
+
+    /**
+     * API endpoint for fetching posts (AJAX).
+     */
+    public function apiIndex(Request $request)
+    {
+        $query = DB::table('as_blogs')
+            ->where('deleteStatus', 'active')
+            ->where('blogStatus', 'published')
+            ->whereNotNull('publishedAt')
+            ->where('publishedAt', '<=', now());
+
+        // Filter by category if provided
+        if ($request->has('category') && $request->category !== 'all' && $request->category !== '') {
+            $query->where('blogCategory', $request->category);
+        }
+
+        // Get paginated posts
+        $posts = $query->orderBy('publishedAt', 'desc')
+            ->paginate($request->get('per_page', 9));
+
+        // Add full image URL to each post
+        $btcCheckUrl = rtrim(config('app.btc_check_url'), '/');
+        $placeholders = [
+            'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1592982537447-6e2bd1b5d0f2?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=600&h=400&fit=crop',
+        ];
+
+        $posts->getCollection()->transform(function ($post, $index) use ($btcCheckUrl, $placeholders) {
+            $post->imageUrl = $post->blogFeaturedImage
+                ? $btcCheckUrl . '/' . ltrim($post->blogFeaturedImage, '/')
+                : $placeholders[$index % count($placeholders)];
+            $post->url = route('blog.show', $post->blogSlug);
+            $post->formattedDate = $post->publishedAt
+                ? \Carbon\Carbon::parse($post->publishedAt)->format('M j, Y')
+                : null;
+            return $post;
+        });
+
+        return response()->json([
+            'posts' => $posts->items(),
+            'pagination' => [
+                'current_page' => $posts->currentPage(),
+                'last_page' => $posts->lastPage(),
+                'per_page' => $posts->perPage(),
+                'total' => $posts->total(),
+                'from' => $posts->firstItem(),
+                'to' => $posts->lastItem(),
+            ]
+        ]);
+    }
 }
