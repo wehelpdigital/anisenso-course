@@ -162,15 +162,20 @@
 @endpush
 
 @section('content')
+@php
+    $placeholderImages = [
+        'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&h=800&fit=crop',
+        'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&h=800&fit=crop',
+        'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=800&fit=crop',
+    ];
+    $heroImage = $post->blogFeaturedImage ?: $placeholderImages[crc32($post->blogSlug ?? '') % count($placeholderImages)];
+@endphp
+
 <!-- Hero Section -->
 <section class="relative min-h-[50vh] flex items-center overflow-hidden">
     <!-- Background -->
     <div class="absolute inset-0">
-        @if($post->blogFeaturedImage)
-            <img src="{{ $post->blogFeaturedImage }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
-        @else
-            <div class="w-full h-full bg-gradient-to-br from-brand-green to-brand-dark"></div>
-        @endif
+        <img src="{{ $heroImage }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-r from-brand-dark via-brand-dark/90 to-brand-dark/70"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/50 to-transparent"></div>
     </div>
@@ -301,6 +306,13 @@
             <p class="text-gray-600 mt-2">Continue reading more from our blog</p>
         </div>
 
+        @php
+            $relatedPlaceholders = [
+                'https://images.unsplash.com/photo-1592982537447-6e2bd1b5d0f2?w=600&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=400&fit=crop',
+                'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=600&h=400&fit=crop',
+            ];
+        @endphp
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @foreach($relatedPosts as $related)
             @php
@@ -316,21 +328,14 @@
                     default => 'bg-brand-green/10 text-brand-green'
                 };
                 $delay = ($loop->index * 150) + 100;
+                $relatedImage = $related->blogFeaturedImage ?: $relatedPlaceholders[$loop->index % count($relatedPlaceholders)];
             @endphp
             <a href="{{ route('blog.show', $related->blogSlug) }}"
                class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-500"
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
                :style="shown ? 'transition-delay: {{ $delay }}ms' : ''">
                 <div class="blog-image aspect-[16/10]">
-                    @if($related->blogFeaturedImage)
-                        <img src="{{ $related->blogFeaturedImage }}" alt="{{ $related->blogTitle }}" class="w-full h-full object-cover">
-                    @else
-                        <div class="w-full h-full bg-gradient-to-br from-brand-green/20 to-brand-dark/20 flex items-center justify-center">
-                            <svg class="w-16 h-16 text-brand-green/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
-                            </svg>
-                        </div>
-                    @endif
+                    <img src="{{ $relatedImage }}" alt="{{ $related->blogTitle }}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-6">
                     <div class="mb-3">

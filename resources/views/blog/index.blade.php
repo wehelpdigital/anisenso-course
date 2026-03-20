@@ -82,14 +82,15 @@
             <a href="{{ route('blog.show', $featured->blogSlug) }}" class="group block transition-all duration-700 delay-100"
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center bg-gray-50 rounded-3xl overflow-hidden">
+                    @php
+                        $placeholderImages = [
+                            'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&h=600&fit=crop',
+                            'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&h=600&fit=crop',
+                            'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop',
+                        ];
+                    @endphp
                     <div class="blog-image aspect-[4/3] lg:aspect-auto lg:h-[400px]">
-                        @if($featured->blogFeaturedImage)
-                        <img src="{{ $featured->blogFeaturedImage }}" alt="{{ $featured->blogTitle }}" class="w-full h-full object-cover">
-                        @else
-                        <div class="w-full h-full bg-brand-green/10 flex items-center justify-center">
-                            <svg class="w-20 h-20 text-brand-green/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                        </div>
-                        @endif
+                        <img src="{{ $featured->blogFeaturedImage ?: $placeholderImages[0] }}" alt="{{ $featured->blogTitle }}" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 lg:pr-12">
                         <div class="mb-4">
@@ -134,19 +135,23 @@
         @if($posts->count() > 0)
         <!-- Blog Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            @php
+                $placeholders = [
+                    'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1592982537447-6e2bd1b5d0f2?w=600&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=400&fit=crop',
+                    'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=600&h=400&fit=crop',
+                ];
+            @endphp
             @foreach($posts as $index => $post)
             <a href="{{ route('blog.show', $post->blogSlug) }}"
                class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-500"
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
                :style="shown ? 'transition-delay: {{ ($index % 6 + 1) * 100 }}ms' : ''">
                 <div class="blog-image aspect-[16/10]">
-                    @if($post->blogFeaturedImage)
-                    <img src="{{ $post->blogFeaturedImage }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
-                    @else
-                    <div class="w-full h-full bg-brand-green/10 flex items-center justify-center">
-                        <svg class="w-12 h-12 text-brand-green/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    </div>
-                    @endif
+                    <img src="{{ $post->blogFeaturedImage ?: $placeholders[$index % count($placeholders)] }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-6">
                     <div class="mb-3">
