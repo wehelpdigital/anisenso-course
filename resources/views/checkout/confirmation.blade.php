@@ -68,7 +68,7 @@
             </div>
 
             <!-- Order Receipt Card -->
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+            <div id="orderReceipt" class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
                 <!-- Green Header -->
                 <div class="bg-brand-green px-6 py-4 text-center">
                     <p class="text-white/80 text-sm">Order Number</p>
@@ -196,6 +196,19 @@
                     <span x-text="linkCopied ? 'Link Copied!' : 'Copy Order Link'"></span>
                 </button>
 
+                <button @click="saveScreenshot()"
+                        :disabled="isSaving"
+                        class="w-full inline-flex items-center justify-center gap-2 bg-brand-yellow text-brand-dark px-6 py-4 rounded-xl font-bold hover:bg-brand-yellow-hover transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50">
+                    <svg x-show="!isSaving" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <svg x-show="isSaving" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span x-text="isSaving ? 'Saving...' : 'I-save bilang Photo'"></span>
+                </button>
+
                 <a href="{{ url('/') }}"
                    class="w-full inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-all duration-300">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -220,10 +233,14 @@
 @endsection
 
 @push('scripts')
+<!-- html2canvas library for screenshot -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <script>
 function confirmationPage() {
     return {
         linkCopied: false,
+        isSaving: false,
 
         copyLink() {
             const url = window.location.href;
@@ -245,6 +262,36 @@ function confirmationPage() {
                     this.linkCopied = false;
                 }, 3000);
             });
+        },
+
+        async saveScreenshot() {
+            this.isSaving = true;
+
+            try {
+                const element = document.getElementById('orderReceipt');
+                if (!element) {
+                    alert('Could not find order receipt element.');
+                    return;
+                }
+
+                const canvas = await html2canvas(element, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    useCORS: true,
+                });
+
+                // Convert to image and download
+                const link = document.createElement('a');
+                link.download = `Ani-Senso-Order-{{ $order->orderNumber }}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                console.error('Screenshot error:', error);
+                alert('May error sa pag-save ng photo. Subukan ulit.');
+            } finally {
+                this.isSaving = false;
+            }
         }
     }
 }
