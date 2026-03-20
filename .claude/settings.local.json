@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan:*)",
+      "Bash(composer:*)",
+      "Bash(npm:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(ls:*)",
+      "Bash(dir:*)",
+      "Bash(mkdir:*)",
+      "Bash(php -l:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:laravel.com)",
+      "WebFetch(domain:packagist.org)",
+      "Bash(npm install)",
+      "Bash(npm run build:*)",
+      "WebFetch(domain:anisenso.test)",
+      "WebFetch(domain:www.svgrepo.com)",
+      "WebFetch(domain:heroicons.com)",
+      "Bash(findstr:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:localhost)",
+      "WebFetch(domain:rhizocote.com)",
+      "Bash(copy \"C:\\\\Users\\\\User\\\\Downloads\\\\IMG_20250823_084800.jpg\" \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\public\\\\images\\\\rhizo-hero-bg.jpg\")",
+      "Bash(xcopy \"C:\\\\Users\\\\User\\\\Downloads\\\\IMG_20250823_084800.jpg\" \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\public\\\\images\\\\rhizo-hero-bg.jpg*\" /Y)",
+      "Bash(powershell:*)",
+      "Bash(if not exist \"C:\\\\xampp\\\\htdocs\\\\btc-check\\\\public\\\\images\\\\payment-screenshots\" mkdir \"C:\\\\xampp\\\\htdocs\\\\btc-check\\\\public\\\\images\\\\payment-screenshots\")",
+      "Bash(php -r:*)",
+      "Bash(if not exist \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\app\\\\Services\" mkdir \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\app\\\\Services\")",
+      "Bash(curl:*)",
+      "Bash(git init:*)",
+      "Bash(git remote:*)"
+    ]
+  }
+}
