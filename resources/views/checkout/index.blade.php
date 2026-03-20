@@ -1491,9 +1491,15 @@ function checkoutWizard() {
                 const data = await response.json();
 
                 if (data.success) {
-                    this.orderNumber = data.orderNumber;
-                    this.confirmationEmail = data.email;
-                    this.currentStep = 3; // Success state
+                    // Redirect to unique confirmation page
+                    if (data.redirectUrl) {
+                        window.location.href = data.redirectUrl;
+                    } else {
+                        // Fallback to inline step 3 if no redirect URL
+                        this.orderNumber = data.orderNumber;
+                        this.confirmationEmail = data.email;
+                        this.currentStep = 3;
+                    }
                 } else {
                     if (data.errors) {
                         this.errors = {...this.errors, ...this.flattenErrors(data.errors)};

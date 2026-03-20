@@ -614,6 +614,7 @@ Route::post('/checkout/step-3', [CheckoutController::class, 'stepThree'])->name(
 Route::post('/checkout/login', [CheckoutController::class, 'loginExistingAccount'])->name('checkout.login');
 Route::post('/checkout/check-email', [CheckoutController::class, 'checkEmailExists'])->name('checkout.check-email');
 Route::get('/checkout/reset', [CheckoutController::class, 'resetCheckout'])->name('checkout.reset');
+Route::get('/checkout/salamat/{token}', [CheckoutController::class, 'showConfirmation'])->name('checkout.confirmation');
 
 // Guest routes (not authenticated)
 Route::middleware('guest:client')->group(function () {

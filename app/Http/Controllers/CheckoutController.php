@@ -1129,6 +1129,16 @@ class CheckoutController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Generate a confirmation token for the unique confirmation page
+            $confirmationToken = Str::random(32);
+
+            DB::table('ecom_orders')
+                ->where('id', $orderId)
+                ->update([
+                    'confirmationToken' => $confirmationToken,
+                    'updated_at' => now(),
+                ]);
+
             // Clear checkout session
             session()->forget([
                 'checkout_order_id',
@@ -1149,6 +1159,7 @@ class CheckoutController extends Controller
                 'message' => 'Payment details submitted successfully!',
                 'orderNumber' => $orderNumber,
                 'email' => $accountEmail,
+                'redirectUrl' => route('checkout.confirmation', ['token' => $confirmationToken]),
             ]);
 
         } catch (\Exception $e) {
@@ -1904,5 +1915,69 @@ class CheckoutController extends Controller
         // Use the anisenso-course app URL
         $baseUrl = config('app.url', 'http://localhost:8001');
         return $baseUrl . '/checkout/continue/' . $order->recoveryToken;
+    }
+
+    /**
+     * Show the confirmation page after successful payment submission
+     *
+     * @param string $token Confirmation token
+     * @return \Illuminate\View\View
+     */
+    public function showConfirmation($token)
+    {
+        // Find order by confirmation token
+        $order = DB::table('ecom_orders')
+            ->where('confirmationToken', $token)
+            ->where('deleteStatus', 1)
+            ->first();
+
+        if (!$order) {
+            // Invalid token - redirect to home with message
+            return redirect()->route('home')->with('error', 'Invalid confirmation link.');
+        }
+
+        // Get order item for product details
+        $orderItem = DB::table('ecom_order_items')
+            ->where('orderId', $order->id)
+            ->where('deleteStatus', 1)
+            ->first();
+
+        // Determine payment status message
+        $paymentStatus = $order->paymentVerificationStatus ?? 'pending';
+        $orderStatus = $order->orderStatus;
+
+        $statusInfo = match(true) {
+            in_array($orderStatus, ['paid', 'completed', 'processing']) => [
+                'status' => 'verified',
+                'icon' => 'check-circle',
+                'color' => 'green',
+                'title' => 'Payment Verified!',
+                'message' => 'Ang iyong payment ay na-verify na. Maa-access mo na ang course!',
+            ],
+            $paymentStatus === 'verified' => [
+                'status' => 'verified',
+                'icon' => 'check-circle',
+                'color' => 'green',
+                'title' => 'Payment Verified!',
+                'message' => 'Ang iyong payment ay na-verify na. Maa-access mo na ang course!',
+            ],
+            default => [
+                'status' => 'pending',
+                'icon' => 'clock',
+                'color' => 'yellow',
+                'title' => 'Payment Verification Pending',
+                'message' => 'Ang iyong payment ay ive-verify namin within 24 hours.',
+            ],
+        };
+
+        return view('checkout.confirmation', [
+            'order' => $order,
+            'orderItem' => $orderItem,
+            'productName' => $orderItem->productName ?? $this->productName,
+            'variantName' => $orderItem->variantName ?? $this->variantName,
+            'price' => $order->grandTotal,
+            'statusInfo' => $statusInfo,
+            'confirmationToken' => $token,
+        ]);
     }
 }
