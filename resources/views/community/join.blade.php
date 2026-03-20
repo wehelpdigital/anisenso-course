@@ -32,7 +32,7 @@
     }
     .form-select {
         width: 100%;
-        padding: 14px 18px;
+        padding: 14px 40px 14px 18px;
         border-radius: 12px;
         border: 2px solid #e5e7eb;
         outline: none;
@@ -40,6 +40,13 @@
         font-size: 16px;
         background-color: white;
         cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 20px;
     }
     .form-select:focus {
         border-color: #4a7c2a;
