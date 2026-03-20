@@ -83,14 +83,18 @@
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center bg-gray-50 rounded-3xl overflow-hidden">
                     @php
+                        $btcCheckUrl = rtrim(config('app.btc_check_url'), '/');
                         $placeholderImages = [
                             'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&h=600&fit=crop',
                             'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800&h=600&fit=crop',
                             'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop',
                         ];
+                        $featuredImage = $featured->blogFeaturedImage
+                            ? $btcCheckUrl . '/' . ltrim($featured->blogFeaturedImage, '/')
+                            : $placeholderImages[0];
                     @endphp
                     <div class="blog-image aspect-[4/3] lg:aspect-auto lg:h-[400px]">
-                        <img src="{{ $featured->blogFeaturedImage ?: $placeholderImages[0] }}" alt="{{ $featured->blogTitle }}" class="w-full h-full object-cover">
+                        <img src="{{ $featuredImage }}" alt="{{ $featured->blogTitle }}" class="w-full h-full object-cover">
                     </div>
                     <div class="p-8 lg:pr-12">
                         <div class="mb-4">
@@ -136,6 +140,7 @@
         <!-- Blog Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @php
+                $btcUrl = rtrim(config('app.btc_check_url'), '/');
                 $placeholders = [
                     'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&h=400&fit=crop',
                     'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=400&fit=crop',
@@ -146,12 +151,17 @@
                 ];
             @endphp
             @foreach($posts as $index => $post)
+            @php
+                $postImage = $post->blogFeaturedImage
+                    ? $btcUrl . '/' . ltrim($post->blogFeaturedImage, '/')
+                    : $placeholders[$index % count($placeholders)];
+            @endphp
             <a href="{{ route('blog.show', $post->blogSlug) }}"
                class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-500"
                :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
                :style="shown ? 'transition-delay: {{ ($index % 6 + 1) * 100 }}ms' : ''">
                 <div class="blog-image aspect-[16/10]">
-                    <img src="{{ $post->blogFeaturedImage ?: $placeholders[$index % count($placeholders)] }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
+                    <img src="{{ $postImage }}" alt="{{ $post->blogTitle }}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-6">
                     <div class="mb-3">

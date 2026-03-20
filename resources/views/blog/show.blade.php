@@ -163,12 +163,15 @@
 
 @section('content')
 @php
+    $btcCheckUrl = rtrim(config('app.btc_check_url'), '/');
     $placeholderImages = [
         'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&h=800&fit=crop',
         'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&h=800&fit=crop',
         'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=1200&h=800&fit=crop',
     ];
-    $heroImage = $post->blogFeaturedImage ?: $placeholderImages[crc32($post->blogSlug ?? '') % count($placeholderImages)];
+    $heroImage = $post->blogFeaturedImage
+        ? $btcCheckUrl . '/' . ltrim($post->blogFeaturedImage, '/')
+        : $placeholderImages[crc32($post->blogSlug ?? '') % count($placeholderImages)];
 @endphp
 
 <!-- Hero Section -->
@@ -307,6 +310,7 @@
         </div>
 
         @php
+            $btcUrl = rtrim(config('app.btc_check_url'), '/');
             $relatedPlaceholders = [
                 'https://images.unsplash.com/photo-1592982537447-6e2bd1b5d0f2?w=600&h=400&fit=crop',
                 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&h=400&fit=crop',
@@ -328,7 +332,9 @@
                     default => 'bg-brand-green/10 text-brand-green'
                 };
                 $delay = ($loop->index * 150) + 100;
-                $relatedImage = $related->blogFeaturedImage ?: $relatedPlaceholders[$loop->index % count($relatedPlaceholders)];
+                $relatedImage = $related->blogFeaturedImage
+                    ? $btcUrl . '/' . ltrim($related->blogFeaturedImage, '/')
+                    : $relatedPlaceholders[$loop->index % count($relatedPlaceholders)];
             @endphp
             <a href="{{ route('blog.show', $related->blogSlug) }}"
                class="blog-card bg-white rounded-2xl shadow-sm overflow-hidden transition-all duration-500"
