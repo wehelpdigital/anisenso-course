@@ -92,13 +92,24 @@ class AsHomepageItem extends Model
             return null;
         }
 
-        // If it's already a full URL, return it
+        $btcUrl = rtrim(config('app.btc_check_url'), '/');
+
+        // Handle URLs stored with test domains - replace with current btc_check_url
+        if (str_starts_with($this->image, 'http://anisenso.test') ||
+            str_starts_with($this->image, 'http://btc-check.test') ||
+            str_starts_with($this->image, 'https://anisenso.test') ||
+            str_starts_with($this->image, 'https://btc-check.test')) {
+            // Extract path after domain and append to btc_check_url
+            $path = preg_replace('#^https?://[^/]+#', '', $this->image);
+            return $btcUrl . $path;
+        }
+
+        // If it's already a full URL with a different domain, return it
         if (str_starts_with($this->image, 'http')) {
             return $this->image;
         }
 
         // For local images from the admin system, use config
-        $btcUrl = rtrim(config('app.btc_check_url'), '/');
         return $btcUrl . $this->image;
     }
 
@@ -111,13 +122,24 @@ class AsHomepageItem extends Model
             return null;
         }
 
-        // If it's already a full URL, return it
+        $btcUrl = rtrim(config('app.btc_check_url'), '/');
+
+        // Handle URLs stored with test domains - replace with current btc_check_url
+        if (str_starts_with($this->image2, 'http://anisenso.test') ||
+            str_starts_with($this->image2, 'http://btc-check.test') ||
+            str_starts_with($this->image2, 'https://anisenso.test') ||
+            str_starts_with($this->image2, 'https://btc-check.test')) {
+            // Extract path after domain and append to btc_check_url
+            $path = preg_replace('#^https?://[^/]+#', '', $this->image2);
+            return $btcUrl . $path;
+        }
+
+        // If it's already a full URL with a different domain, return it
         if (str_starts_with($this->image2, 'http')) {
             return $this->image2;
         }
 
         // For local images from the admin system, use config
-        $btcUrl = rtrim(config('app.btc_check_url'), '/');
         return $btcUrl . $this->image2;
     }
 }

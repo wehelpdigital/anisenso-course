@@ -5,7 +5,7 @@
 
             <!-- Logo -->
             <a href="{{ url('/') }}" class="flex-shrink-0">
-                <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-12 md:h-14 w-auto">
+                <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-12 md:h-14 w-auto">
             </a>
 
             <!-- Desktop Navigation - Centered -->

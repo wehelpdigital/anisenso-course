@@ -220,7 +220,7 @@
     <header class="bg-brand-dark py-4 px-4 sticky top-0 z-50">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <a href="{{ url('/') }}" class="flex items-center gap-2">
-                <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto">
+                <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-8 w-auto">
             </a>
             <div class="flex items-center gap-2 text-white/80 text-sm">
                 <svg class="w-4 h-4 text-brand-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>

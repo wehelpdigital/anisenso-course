@@ -110,7 +110,7 @@
 <header class="bg-brand-dark">
     <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href="{{ url('/') }}" class="flex items-center gap-2">
-            <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto">
+            <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-8 w-auto">
         </a>
         <a href="{{ url('/') }}" class="text-gray-400 hover:text-white transition-colors text-sm flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>

@@ -7,7 +7,7 @@
             <!-- Brand Column - Takes more space -->
             <div class="lg:col-span-5">
                 <a href="{{ url('/') }}" class="inline-block mb-4">
-                    <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-10 w-auto">
+                    <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-10 w-auto">
                 </a>
                 <p class="text-gray-400 text-sm leading-relaxed mb-5 max-w-md">
                     Empowering Filipino farmers with education, technology, and quality products for a sustainable agricultural future.

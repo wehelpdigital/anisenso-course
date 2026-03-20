@@ -10,7 +10,7 @@
         <!-- Logo & Title -->
         <div class="text-center mb-8">
             <a href="{{ url('/') }}" class="inline-block mb-4">
-                <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-14 w-auto mx-auto">
+                <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-14 w-auto mx-auto">
             </a>
             <h1 class="text-2xl font-bold text-gray-900">Verify Your Email</h1>
             <p class="mt-2 text-gray-500">Enter the 6-digit code sent to</p>

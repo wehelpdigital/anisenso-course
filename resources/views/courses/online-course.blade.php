@@ -182,7 +182,7 @@
         @scroll.window="scrolled = window.scrollY > 100">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <a href="{{ url('/') }}" class="flex items-center gap-2">
-            <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto">
+            <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-8 w-auto">
         </a>
         <a href="{{ route('checkout') }}"
            class="inline-flex items-center gap-2 bg-brand-yellow text-brand-dark px-5 py-2 rounded-lg font-bold text-sm hover:bg-brand-yellow-hover transition-all duration-300"
@@ -858,7 +858,7 @@
 <!-- Minimal Footer -->
 <footer class="bg-brand-dark py-8 border-t border-white/10">
     <div class="max-w-5xl mx-auto px-4 text-center">
-        <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto mx-auto mb-4 opacity-60">
+        <img src="{{ asset('images/logo.png') }}" alt="AniSenso" class="h-8 w-auto mx-auto mb-4 opacity-60">
         <p class="text-gray-500 text-sm mb-2">&copy; {{ date('Y') }} AniSenso Academy. All rights reserved.</p>
         <div class="flex items-center justify-center gap-4 text-sm">
             <a href="{{ url('/') }}" class="text-gray-500 hover:text-white transition-colors">Home</a>
