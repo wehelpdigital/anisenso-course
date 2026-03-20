@@ -58,9 +58,12 @@
 
 @section('content')
 @php
+    // BTC Check URL for assets
+    $btcUrl = rtrim(config('app.btc_check_url'), '/');
+
     // Get Hero Section Settings
     $heroSection = $sections->get("hero");
-    $heroBgImage = $heroSection?->getSetting("backgroundImage", "http://anisenso.test/wp-content/uploads/2025/12/488478569_2174213226369837_7066166916975308288_n.jpg");
+    $heroBgImage = $heroSection?->getSetting("backgroundImage", $btcUrl . "/wp-content/uploads/2025/12/488478569_2174213226369837_7066166916975308288_n.jpg");
     $heroOverlay = $heroSection?->getSetting("overlayOpacity", 50);
     $heroSupertext = $heroSection?->getSetting("supertext", "Maximizing Crop Yields for Palay, Mais, and More");
     $heroTitle = $heroSection?->getSetting("title", "Helping Filipino Farmers Reach Maximum Yield and Income");
@@ -186,7 +189,7 @@
 @php
     $awardSection = $sections->get("award");
     $awardVideoUrl = $awardSection?->getSetting("videoUrl", "https://www.youtube.com/embed/V34MyFVO7kU");
-    $awardSideImage = $awardSection?->getSetting("sideImage", "http://anisenso.test/wp-content/uploads/2025/12/palay-08.jpg");
+    $awardSideImage = $awardSection?->getSetting("sideImage", $btcUrl . "/wp-content/uploads/2025/12/palay-08.jpg");
     $awardBadge = $awardSection?->getSetting("badge", $awardSection?->getSetting("supertext", "Locally and Internationally Recognized"));
     $awardTitle = $awardSection?->getSetting("title", "Award Winning");
     $awardTitleHighlight = $awardSection?->getSetting("titleHighlight", "Technology");
@@ -663,14 +666,14 @@
             visibleSlides: 4,
             autoplayInterval: null,
             images: [
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/banana.png', alt: 'Banana' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/palm.png', alt: 'Palm' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/mango.png', alt: 'Mango' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/banana.png', alt: 'Banana Harvest' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/palm.png', alt: 'Palm Grove' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/mango.png', alt: 'Mango Orchard' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/banana.png', alt: 'Banana Farm' },
-                { src: 'http://anisenso.test/wp-content/uploads/2025/12/palm.png', alt: 'Palm Plantation' }
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/banana.png', alt: 'Banana' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/palm.png', alt: 'Palm' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/mango.png', alt: 'Mango' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/banana.png', alt: 'Banana Harvest' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/palm.png', alt: 'Palm Grove' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/mango.png', alt: 'Mango Orchard' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/banana.png', alt: 'Banana Farm' },
+                { src: '{{ $btcUrl }}/wp-content/uploads/2025/12/palm.png', alt: 'Palm Plantation' }
             ],
             get totalSlides() {
                 return this.images.length;

@@ -2,13 +2,15 @@
 
 @section('title', 'Order Completed - Ani-Senso Academy')
 
+@php $btcUrl = rtrim(config('app.btc_check_url'), '/'); @endphp
+
 @section('content')
 <div class="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gray-100">
     <div class="w-full max-w-md">
         <!-- Logo & Title -->
         <div class="text-center mb-8">
             <a href="{{ url('/') }}" class="inline-block mb-4">
-                <img src="http://anisenso.test/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-14 w-auto mx-auto">
+                <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-14 w-auto mx-auto">
             </a>
         </div>
 

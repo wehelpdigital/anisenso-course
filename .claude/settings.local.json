@@ -37,7 +37,8 @@
       "Bash(if not exist \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\app\\\\Services\" mkdir \"C:\\\\xampp\\\\htdocs\\\\anisenso-course\\\\app\\\\Services\")",
       "Bash(curl:*)",
       "Bash(git init:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Bash(git branch:*)"
     ]
   }
 }

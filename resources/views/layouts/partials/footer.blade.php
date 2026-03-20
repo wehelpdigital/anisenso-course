@@ -1,3 +1,4 @@
+@php $btcUrl = rtrim(config('app.btc_check_url'), '/'); @endphp
 <footer class="bg-gray-900 text-white" style="font-family: 'Instrument Sans', sans-serif;">
     <!-- Main Footer -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -6,7 +7,7 @@
             <!-- Brand Column - Takes more space -->
             <div class="lg:col-span-5">
                 <a href="{{ url('/') }}" class="inline-block mb-4">
-                    <img src="http://anisenso.test/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-10 w-auto">
+                    <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-10 w-auto">
                 </a>
                 <p class="text-gray-400 text-sm leading-relaxed mb-5 max-w-md">
                     Empowering Filipino farmers with education, technology, and quality products for a sustainable agricultural future.

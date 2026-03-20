@@ -2,6 +2,8 @@
 
 @section('title', 'Ang Lihim sa Mataas na Ani - Online Course | AniSenso Academy')
 
+@php $btcUrl = rtrim(config('app.btc_check_url'), '/'); @endphp
+
 @push('styles')
 <style>
     .gradient-text {
@@ -180,7 +182,7 @@
         @scroll.window="scrolled = window.scrollY > 100">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         <a href="{{ url('/') }}" class="flex items-center gap-2">
-            <img src="http://anisenso.test/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto">
+            <img src="{{ $btcUrl }}/wp-content/uploads/2025/12/test-logo-big-2-scaled.png" alt="AniSenso" class="h-8 w-auto">
         </a>
         <a href="{{ route('checkout') }}"
            class="inline-flex items-center gap-2 bg-brand-yellow text-brand-dark px-5 py-2 rounded-lg font-bold text-sm hover:bg-brand-yellow-hover transition-all duration-300"
