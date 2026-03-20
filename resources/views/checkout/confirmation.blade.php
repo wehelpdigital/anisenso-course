@@ -1,6 +1,6 @@
 @extends('layouts.landing')
 
-@section('title', 'Salamat! - Ani-Senso Academy')
+@section('title', '{{ $settings["mainHeading"] }} - Ani-Senso Academy')
 
 @push('styles')
 <style>
@@ -60,11 +60,16 @@
 
                 <!-- Main Message -->
                 <h1 class="text-3xl md:text-4xl font-bold text-brand-dark font-heading mb-2">
-                    Salamat!
+                    {{ $settings['mainHeading'] }}
                 </h1>
                 <p class="text-xl text-brand-green font-semibold">
-                    Congratulations, Magsasaka!
+                    {{ $settings['subHeading'] }}
                 </p>
+                @if(!empty($settings['subHeadingText']))
+                <p class="text-gray-600 mt-2">
+                    {{ $settings['subHeadingText'] }}
+                </p>
+                @endif
             </div>
 
             <!-- Order Receipt Card -->
@@ -125,63 +130,68 @@
             </div>
 
             <!-- What's Next Section -->
+            @if(!empty($settings['whatsNextSteps']) && count($settings['whatsNextSteps']) > 0)
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
                 <h3 class="font-bold text-brand-dark mb-4 flex items-center gap-2">
                     <svg class="w-5 h-5 text-brand-green" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
                     </svg>
-                    Ano ang susunod?
+                    {{ $settings['whatsNextTitle'] }}
                 </h3>
                 <div class="space-y-3">
+                    @foreach($settings['whatsNextSteps'] as $index => $step)
                     <div class="flex items-start gap-3">
                         <div class="w-6 h-6 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-white text-xs font-bold">1</span>
+                            <span class="text-white text-xs font-bold">{{ $index + 1 }}</span>
                         </div>
-                        <p class="text-gray-600">I-ve-verify namin ang payment mo <strong>within 24 hours</strong>.</p>
+                        <p class="text-gray-600">{!! $step['text'] !!}</p>
                     </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-white text-xs font-bold">2</span>
-                        </div>
-                        <p class="text-gray-600">Makakatanggap ka ng <strong>email confirmation</strong> with login details.</p>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <div class="w-6 h-6 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span class="text-white text-xs font-bold">3</span>
-                        </div>
-                        <p class="text-gray-600">Simulan mo na ang <strong>pag-aaral</strong> at magsimulang kumita!</p>
-                    </div>
+                    @endforeach
                 </div>
             </div>
+            @endif
 
             <!-- Inspirational Message -->
+            @if(!empty($settings['inspirationalTitle']) || !empty($settings['inspirationalMessage']))
             <div class="bg-gradient-to-r from-brand-green/10 to-brand-yellow/10 rounded-2xl p-6 mb-6 border border-brand-green/20">
                 <div class="text-center">
                     <p class="text-lg text-gray-700 leading-relaxed">
-                        <span class="text-2xl">🌾</span><br>
-                        <span class="font-semibold text-brand-dark">Ito ang simula ng pagbabago!</span><br>
+                        @if(!empty($settings['inspirationalEmoji']))
+                        <span class="text-2xl">{{ $settings['inspirationalEmoji'] }}</span><br>
+                        @endif
+                        @if(!empty($settings['inspirationalTitle']))
+                        <span class="font-semibold text-brand-dark">{{ $settings['inspirationalTitle'] }}</span><br>
+                        @endif
+                        @if(!empty($settings['inspirationalMessage']))
                         <span class="text-sm mt-2 block text-gray-600">
-                            Ginawa mo ang pinakamahalagang hakbang para baguhin ang iyong buhay sa pagsasaka.
-                            Maligayang pagdating sa komunidad ng mga matagumpay na magsasaka!
+                            {{ $settings['inspirationalMessage'] }}
                         </span>
+                        @endif
                     </p>
                 </div>
             </div>
+            @endif
 
             <!-- Bookmark Reminder -->
+            @if(!empty($settings['bookmarkTitle']) || !empty($settings['bookmarkMessage']))
             <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100">
                 <div class="flex items-start gap-3">
                     <svg class="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
                     </svg>
                     <div>
-                        <p class="font-medium text-blue-800 text-sm">I-save ang page na ito!</p>
+                        @if(!empty($settings['bookmarkTitle']))
+                        <p class="font-medium text-blue-800 text-sm">{{ $settings['bookmarkTitle'] }}</p>
+                        @endif
+                        @if(!empty($settings['bookmarkMessage']))
                         <p class="text-blue-600 text-xs mt-1">
-                            Puwede mong balikan ang page na ito anytime para ma-check ang status ng order mo.
+                            {{ $settings['bookmarkMessage'] }}
                         </p>
+                        @endif
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Action Buttons -->
             <div class="space-y-3">
@@ -193,7 +203,7 @@
                     <svg x-show="linkCopied" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                     </svg>
-                    <span x-text="linkCopied ? 'Link Copied!' : 'Copy Order Link'"></span>
+                    <span x-text="linkCopied ? '{{ $settings['copyLinkSuccessText'] }}' : '{{ $settings['copyLinkButtonText'] }}'"></span>
                 </button>
 
                 <button @click="saveScreenshot()"
@@ -206,7 +216,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <span x-text="isSaving ? 'Saving...' : 'I-save bilang Photo'"></span>
+                    <span x-text="isSaving ? '{{ $settings['savingText'] }}' : '{{ $settings['savePhotoButtonText'] }}'"></span>
                 </button>
 
                 <a href="{{ url('/') }}"
@@ -214,7 +224,7 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
-                    Bumalik sa Home
+                    {{ $settings['homeButtonText'] }}
                 </a>
             </div>
 
@@ -224,7 +234,7 @@
                     <svg class="w-4 h-4 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
-                    Secured by Ani-Senso Academy
+                    {{ $settings['footerText'] }}
                 </p>
             </div>
         </div>

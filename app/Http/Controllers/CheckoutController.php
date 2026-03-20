@@ -1954,27 +1954,27 @@ class CheckoutController extends Controller
         $paymentStatus = $order->paymentVerificationStatus ?? 'pending';
         $orderStatus = $order->orderStatus;
 
+        // Get thank you page settings from btc-check database
+        $thankYouSettings = $this->getThankYouPageSettings();
+
         $statusInfo = match(true) {
             in_array($orderStatus, ['paid', 'completed', 'processing']) => [
                 'status' => 'verified',
                 'icon' => 'check-circle',
                 'color' => 'green',
-                'title' => 'Payment Verified!',
-                'message' => 'Ang iyong payment ay na-verify na. Maa-access mo na ang course!',
+                'title' => $thankYouSettings['statusVerifiedText'],
             ],
             $paymentStatus === 'verified' => [
                 'status' => 'verified',
                 'icon' => 'check-circle',
                 'color' => 'green',
-                'title' => 'Payment Verified!',
-                'message' => 'Ang iyong payment ay na-verify na. Maa-access mo na ang course!',
+                'title' => $thankYouSettings['statusVerifiedText'],
             ],
             default => [
                 'status' => 'pending',
                 'icon' => 'clock',
                 'color' => 'yellow',
-                'title' => 'Payment Verification Pending',
-                'message' => 'Ang iyong payment ay ive-verify namin within 24 hours.',
+                'title' => $thankYouSettings['statusPendingText'],
             ],
         };
 
@@ -1986,6 +1986,76 @@ class CheckoutController extends Controller
             'price' => $order->grandTotal,
             'statusInfo' => $statusInfo,
             'confirmationToken' => $token,
+            'settings' => $thankYouSettings,
         ]);
+    }
+
+    /**
+     * Get thank you page settings from database
+     * Falls back to defaults if not found
+     *
+     * @return array
+     */
+    protected function getThankYouPageSettings()
+    {
+        // Try to get settings from database (usersId = 1 is the main admin)
+        $settings = DB::table('ecom_thank_you_page_settings')
+            ->where('delete_status', 'active')
+            ->first();
+
+        // Default steps
+        $defaultSteps = [
+            ['text' => 'I-ve-verify namin ang payment mo <strong>within 24 hours</strong>.'],
+            ['text' => 'Makakatanggap ka ng <strong>email confirmation</strong> with login details.'],
+            ['text' => 'Simulan mo na ang <strong>pag-aaral</strong> at magsimulang kumita!'],
+        ];
+
+        if ($settings) {
+            // Parse whatsNextSteps JSON
+            $steps = $settings->whatsNextSteps ? json_decode($settings->whatsNextSteps, true) : $defaultSteps;
+
+            return [
+                'mainHeading' => $settings->mainHeading ?? 'Salamat!',
+                'subHeading' => $settings->subHeading ?? 'Congratulations, Magsasaka!',
+                'subHeadingText' => $settings->subHeadingText ?? '',
+                'whatsNextTitle' => $settings->whatsNextTitle ?? 'Ano ang susunod?',
+                'whatsNextSteps' => $steps,
+                'inspirationalEmoji' => $settings->inspirationalEmoji ?? '🌾',
+                'inspirationalTitle' => $settings->inspirationalTitle ?? 'Ito ang simula ng pagbabago!',
+                'inspirationalMessage' => $settings->inspirationalMessage ?? 'Ginawa mo ang pinakamahalagang hakbang para baguhin ang iyong buhay sa pagsasaka. Maligayang pagdating sa komunidad ng mga matagumpay na magsasaka!',
+                'bookmarkTitle' => $settings->bookmarkTitle ?? 'I-save ang page na ito!',
+                'bookmarkMessage' => $settings->bookmarkMessage ?? 'Puwede mong balikan ang page na ito anytime para ma-check ang status ng order mo.',
+                'copyLinkButtonText' => $settings->copyLinkButtonText ?? 'Copy Order Link',
+                'copyLinkSuccessText' => $settings->copyLinkSuccessText ?? 'Link Copied!',
+                'savePhotoButtonText' => $settings->savePhotoButtonText ?? 'I-save bilang Photo',
+                'savingText' => $settings->savingText ?? 'Saving...',
+                'homeButtonText' => $settings->homeButtonText ?? 'Bumalik sa Home',
+                'footerText' => $settings->footerText ?? 'Secured by Ani-Senso Academy',
+                'statusVerifiedText' => $settings->statusVerifiedText ?? 'Payment Verified',
+                'statusPendingText' => $settings->statusPendingText ?? 'Pending Verification',
+            ];
+        }
+
+        // Return defaults if no settings found
+        return [
+            'mainHeading' => 'Salamat!',
+            'subHeading' => 'Congratulations, Magsasaka!',
+            'subHeadingText' => '',
+            'whatsNextTitle' => 'Ano ang susunod?',
+            'whatsNextSteps' => $defaultSteps,
+            'inspirationalEmoji' => '🌾',
+            'inspirationalTitle' => 'Ito ang simula ng pagbabago!',
+            'inspirationalMessage' => 'Ginawa mo ang pinakamahalagang hakbang para baguhin ang iyong buhay sa pagsasaka. Maligayang pagdating sa komunidad ng mga matagumpay na magsasaka!',
+            'bookmarkTitle' => 'I-save ang page na ito!',
+            'bookmarkMessage' => 'Puwede mong balikan ang page na ito anytime para ma-check ang status ng order mo.',
+            'copyLinkButtonText' => 'Copy Order Link',
+            'copyLinkSuccessText' => 'Link Copied!',
+            'savePhotoButtonText' => 'I-save bilang Photo',
+            'savingText' => 'Saving...',
+            'homeButtonText' => 'Bumalik sa Home',
+            'footerText' => 'Secured by Ani-Senso Academy',
+            'statusVerifiedText' => 'Payment Verified',
+            'statusPendingText' => 'Pending Verification',
+        ];
     }
 }
