@@ -97,9 +97,9 @@ class AsHomepageItem extends Model
             return $this->image;
         }
 
-        // For local images from the admin system, use env or default
-        $axisUrl = env('AXIS_URL', 'http://btc-check.test');
-        return $axisUrl . $this->image;
+        // For local images from the admin system, use config
+        $btcUrl = rtrim(config('app.btc_check_url'), '/');
+        return $btcUrl . $this->image;
     }
 
     /**
@@ -116,8 +116,8 @@ class AsHomepageItem extends Model
             return $this->image2;
         }
 
-        // For local images from the admin system, use env or default
-        $axisUrl = env('AXIS_URL', 'http://btc-check.test');
-        return $axisUrl . $this->image2;
+        // For local images from the admin system, use config
+        $btcUrl = rtrim(config('app.btc_check_url'), '/');
+        return $btcUrl . $this->image2;
     }
 }
