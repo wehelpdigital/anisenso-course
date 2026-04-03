@@ -56,6 +56,8 @@
 <body class="min-h-screen bg-white font-sans antialiased">
     @yield('content')
 
+    @include('layouts.partials.chat-widget')
+
     @stack('scripts')
 </body>
 </html>

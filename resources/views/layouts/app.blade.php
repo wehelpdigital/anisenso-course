@@ -144,6 +144,8 @@
 
     @yield('after-footer')
 
+    @include('layouts.partials.chat-widget')
+
     @stack('scripts')
 </body>
 </html>

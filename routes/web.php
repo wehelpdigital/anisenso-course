@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +55,11 @@ Route::post('/checkout/login', [CheckoutController::class, 'loginExistingAccount
 Route::post('/checkout/check-email', [CheckoutController::class, 'checkEmailExists'])->name('checkout.check-email');
 Route::get('/checkout/reset', [CheckoutController::class, 'resetCheckout'])->name('checkout.reset');
 Route::get('/checkout/salamat/{token}', [CheckoutController::class, 'showConfirmation'])->name('checkout.confirmation');
+
+// Chat Support routes
+Route::post('/chat/start', [ChatController::class, 'startConversation'])->name('chat.start');
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
+Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');
 
 // Guest routes (not authenticated)
 Route::middleware('guest:client')->group(function () {
