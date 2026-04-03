@@ -70,33 +70,38 @@
                             <p class="text-gray-500 text-xs">Punan ang iyong impormasyon at sasagutin ka namin sa lalong madaling panahon.</p>
                         </div>
 
-                        <form @submit.prevent="startChat()" class="space-y-3">
+                        <form @submit.prevent="validateAndStart()" class="space-y-3">
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-1">Pangalan</label>
                                 <input
                                     type="text"
                                     x-model="visitorName"
+                                    @input="errors.visitorName = ''"
                                     placeholder="Iyong pangalan"
-                                    required
-                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    :class="errors.visitorName ? 'border-red-400' : 'border-gray-200'"
                                 >
+                                <p x-show="errors.visitorName" x-text="errors.visitorName" class="text-red-500 text-xs mt-1"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
                                 <input
-                                    type="email"
+                                    type="text"
                                     x-model="visitorEmail"
+                                    @input="errors.visitorEmail = ''"
                                     placeholder="Iyong email address"
-                                    required
-                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    :class="errors.visitorEmail ? 'border-red-400' : 'border-gray-200'"
                                 >
+                                <p x-show="errors.visitorEmail" x-text="errors.visitorEmail" class="text-red-500 text-xs mt-1"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-1">Lokasyon ng Farm <span class="text-gray-400 font-normal">(Probinsya)</span></label>
                                 <select
                                     x-model="farmLocation"
-                                    required
-                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    @change="errors.farmLocation = ''"
+                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    :class="errors.farmLocation ? 'border-red-400' : 'border-gray-200'"
                                 >
                                     <option value="">— Pumili ng Probinsya —</option>
                                     <option value="Abra">Abra</option>
@@ -182,29 +187,34 @@
                                     <option value="Zamboanga del Sur">Zamboanga del Sur</option>
                                     <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
                                 </select>
+                                <p x-show="errors.farmLocation" x-text="errors.farmLocation" class="text-red-500 text-xs mt-1"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-1">Ikaw Ay</label>
                                 <select
                                     x-model="visitorType"
-                                    required
-                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    @change="errors.visitorType = ''"
+                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                    :class="errors.visitorType ? 'border-red-400' : 'border-gray-200'"
                                 >
                                     <option value="">— Pumili —</option>
                                     <option value="farm_owner">Farm Owner</option>
                                     <option value="farm_worker">Farm Worker</option>
                                     <option value="other">Iba Pa</option>
                                 </select>
+                                <p x-show="errors.visitorType" x-text="errors.visitorType" class="text-red-500 text-xs mt-1"></p>
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-1">Mensahe</label>
                                 <textarea
                                     x-model="initialMessage"
+                                    @input="errors.initialMessage = ''"
                                     placeholder="Ano ang maitutulong namin sa iyo?"
                                     rows="3"
-                                    required
-                                    class="w-full px-3 py-2 border-2 border-gray-200 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors resize-none"
+                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors resize-none"
+                                    :class="errors.initialMessage ? 'border-red-400' : 'border-gray-200'"
                                 ></textarea>
+                                <p x-show="errors.initialMessage" x-text="errors.initialMessage" class="text-red-500 text-xs mt-1"></p>
                             </div>
                             <p x-show="chatError" x-text="chatError" class="text-red-500 text-xs text-center mb-1"></p>
                             <button
@@ -336,6 +346,7 @@ function chatWidget() {
         isSending: false,
         chatStatus: 'active',
         chatError: '',
+        errors: {},
         pollInterval: null,
 
         init() {
@@ -370,9 +381,38 @@ function chatWidget() {
             }
         },
 
-        async startChat() {
-            if (!this.visitorName.trim() || !this.visitorEmail.trim() || !this.farmLocation.trim() || !this.visitorType || !this.initialMessage.trim()) return;
+        validateAndStart() {
+            this.errors = {};
+            let valid = true;
 
+            if (!this.visitorName.trim()) {
+                this.errors.visitorName = 'Mangyaring ilagay ang iyong pangalan.';
+                valid = false;
+            }
+            if (!this.visitorEmail.trim()) {
+                this.errors.visitorEmail = 'Mangyaring ilagay ang iyong email.';
+                valid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.visitorEmail.trim())) {
+                this.errors.visitorEmail = 'Mangyaring maglagay ng wastong email address.';
+                valid = false;
+            }
+            if (!this.farmLocation) {
+                this.errors.farmLocation = 'Mangyaring pumili ng probinsya.';
+                valid = false;
+            }
+            if (!this.visitorType) {
+                this.errors.visitorType = 'Mangyaring pumili ng uri.';
+                valid = false;
+            }
+            if (!this.initialMessage.trim()) {
+                this.errors.initialMessage = 'Mangyaring ilagay ang iyong mensahe.';
+                valid = false;
+            }
+
+            if (valid) this.startChat();
+        },
+
+        async startChat() {
             this.isLoading = true;
             this.chatError = '';
 
@@ -563,6 +603,7 @@ function chatWidget() {
             this.messages = [];
             this.chatStatus = 'active';
             this.chatError = '';
+            this.errors = {};
             this.newMessage = '';
             this.unreadCount = 0;
             localStorage.removeItem('anisenso_chat_session');
