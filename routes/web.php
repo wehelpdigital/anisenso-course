@@ -57,6 +57,7 @@ Route::get('/checkout/reset', [CheckoutController::class, 'resetCheckout'])->nam
 Route::get('/checkout/salamat/{token}', [CheckoutController::class, 'showConfirmation'])->name('checkout.confirmation');
 
 // Chat Support routes
+Route::get('/chat/form-fields', [ChatController::class, 'getFormFields'])->name('chat.form-fields');
 Route::post('/chat/start', [ChatController::class, 'startConversation'])->name('chat.start');
 Route::post('/chat/send', [ChatController::class, 'sendMessage'])->name('chat.send');
 Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.messages');

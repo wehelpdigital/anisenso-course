@@ -1175,36 +1175,40 @@
         <!-- Testimonials Grid with staggered animations -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             @php
-            $testimonials = [
-                ['initials' => 'RS', 'name' => 'Roberto Santos', 'location' => 'Nueva Ecija', 'text' => 'AniSenso Technology has completely transformed my farm. My rice yield increased by 40% in just one season.', 'color' => 'green'],
-                ['initials' => 'MC', 'name' => 'Maria Elena Cruz', 'location' => 'Guimaras', 'text' => "The fruits are bigger, sweeter, and I'm getting better prices at the market. I'm now a believer!", 'color' => 'yellow'],
-                ['initials' => 'JR', 'name' => 'Jose Miguel Reyes', 'location' => 'Davao del Sur', 'text' => "The soil restoration program saved my farm. Now it's healthy again and producing like never before!", 'color' => 'green'],
-                ['initials' => 'AB', 'name' => 'Antonio Bautista', 'location' => 'Quezon Province', 'text' => 'The technician support alone is worth it. They really care about our success as farmers.', 'color' => 'yellow'],
-                ['initials' => 'CV', 'name' => 'Carmen Villanueva', 'location' => 'Benguet', 'text' => "My vegetable farm is now organic-certified thanks to AniSenso's guidance. My customers love it!", 'color' => 'green'],
-                ['initials' => 'RF', 'name' => 'Ricardo Fernandez', 'location' => 'Compostela Valley', 'text' => 'Less disease, stronger plants, consistent quality. Our export clients are very impressed!', 'color' => 'yellow'],
-            ];
+                $testimonialsSection = $sections->get('testimonials');
+                $testimonialItems = $testimonialsSection ? $testimonialsSection->activeItems->sortBy('itemOrder') : collect();
             @endphp
 
-            @foreach($testimonials as $index => $testimonial)
+            @foreach($testimonialItems as $index => $item)
+            @php
+                $extra = is_array($item->extraData) ? $item->extraData : (json_decode($item->extraData, true) ?? []);
+                $rating = $extra['rating'] ?? 5;
+                $initials = collect(explode(' ', $item->title))->map(fn($w) => strtoupper(substr($w, 0, 1)))->take(2)->join('');
+                $color = $index % 2 === 0 ? 'green' : 'yellow';
+            @endphp
             <div class="group bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
                  :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'"
                  style="transition-delay: {{ 100 + ($index * 100) }}ms">
                 <!-- Stars -->
                 <div class="flex gap-1 mb-4">
-                    @for($i = 0; $i < 5; $i++)
+                    @for($i = 0; $i < $rating; $i++)
                     <svg class="w-5 h-5 text-brand-yellow" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2z"/></svg>
                     @endfor
                 </div>
                 <p class="text-gray-700 mb-6 leading-relaxed text-lg">
-                    "{{ $testimonial['text'] }}"
+                    "{{ $item->description }}"
                 </p>
                 <div class="flex items-center gap-4 pt-4 border-t border-gray-100">
-                    <div class="w-12 h-12 {{ $testimonial['color'] === 'green' ? 'bg-brand-green/20' : 'bg-brand-yellow/20' }} rounded-full flex items-center justify-center">
-                        <span class="{{ $testimonial['color'] === 'green' ? 'text-brand-green' : 'text-brand-dark' }} font-bold text-lg">{{ $testimonial['initials'] }}</span>
-                    </div>
+                    @if($item->image)
+                        <img src="{{ asset($item->image) }}" alt="{{ $item->title }}" class="w-12 h-12 rounded-full object-cover">
+                    @else
+                        <div class="w-12 h-12 {{ $color === 'green' ? 'bg-brand-green/20' : 'bg-brand-yellow/20' }} rounded-full flex items-center justify-center">
+                            <span class="{{ $color === 'green' ? 'text-brand-green' : 'text-brand-dark' }} font-bold text-lg">{{ $initials }}</span>
+                        </div>
+                    @endif
                     <div>
-                        <p class="text-gray-900 font-bold">{{ $testimonial['name'] }}</p>
-                        <p class="text-brand-green text-sm">{{ $testimonial['location'] }}</p>
+                        <p class="text-gray-900 font-bold">{{ $item->title }}</p>
+                        <p class="text-brand-green text-sm">{{ $item->subtitle }}</p>
                     </div>
                 </div>
             </div>

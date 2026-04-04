@@ -11,18 +11,38 @@ use Illuminate\Support\Str;
 class ChatController extends Controller
 {
     /**
+     * Get the chat support form fields for dynamic rendering.
+     */
+    public function getFormFields()
+    {
+        $form = DB::table('crm_forms')
+            ->where('formSlug', 'support-chat-form')
+            ->where('delete_status', 'active')
+            ->where('formStatus', 'active')
+            ->first();
+
+        if (!$form) {
+            return response()->json(['success' => false, 'message' => 'Form not found.'], 404);
+        }
+
+        $elements = json_decode($form->formElements, true) ?? [];
+
+        // Filter out non-input elements
+        $skipTypes = ['heading', 'paragraph', 'divider', 'submit_button', 'image', 'video'];
+        $fields = [];
+        foreach ($elements as $el) {
+            if (!isset($el['id']) || in_array($el['type'], $skipTypes)) continue;
+            $fields[] = $el;
+        }
+
+        return response()->json(['success' => true, 'fields' => $fields]);
+    }
+
+    /**
      * Start a new conversation or resume existing one.
      */
     public function startConversation(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|max:150',
-            'farm_location' => 'required|string|max:255',
-            'visitor_type' => 'required|in:farm_owner,farm_worker,other',
-            'message' => 'required|string|max:5000',
-        ]);
-
         $sessionId = $request->input('session_id');
 
         // If there's an existing active conversation with this session, resume it
@@ -43,30 +63,125 @@ class ChatController extends Controller
             }
         }
 
-        // Create CRM lead in Axis
-        $leadId = $this->createCrmLead($request);
+        // Get the CRM form
+        $form = DB::table('crm_forms')
+            ->where('formSlug', 'support-chat-form')
+            ->where('delete_status', 'active')
+            ->first();
+
+        if (!$form) {
+            return response()->json(['success' => false, 'message' => 'Form not configured.'], 500);
+        }
+
+        $formElements = json_decode($form->formElements, true) ?? [];
+        $skipTypes = ['heading', 'paragraph', 'divider', 'submit_button', 'image', 'video'];
+
+        // Validate using form element rules
+        $rules = [];
+        $messages = [];
+        foreach ($formElements as $el) {
+            if (!isset($el['id']) || in_array($el['type'], $skipTypes)) continue;
+            $fieldRules = [];
+            if (!empty($el['required'])) {
+                $fieldRules[] = 'required';
+                $messages[$el['id'] . '.required'] = ($el['label'] ?? 'This field') . ' is required.';
+            } else {
+                $fieldRules[] = 'nullable';
+            }
+            if ($el['type'] === 'email') {
+                $fieldRules[] = 'email';
+                $messages[$el['id'] . '.email'] = 'Please enter a valid email address.';
+            }
+            $rules[$el['id']] = $fieldRules;
+        }
+
+        $validator = \Validator::make($request->all(), $rules, $messages);
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Submit to CRM form (create submission + execute triggers)
+        $submissionData = [];
+        $visitorName = null;
+        $visitorEmail = null;
+        $farmLocation = null;
+        $visitorType = null;
+        $initialMessage = null;
+
+        foreach ($formElements as $el) {
+            if (!isset($el['id']) || in_array($el['type'], $skipTypes)) continue;
+            $value = $request->input($el['id']);
+            $submissionData[$el['id']] = $value;
+
+            // Extract known fields by label for conversation
+            $label = strtolower($el['label'] ?? '');
+            if (stripos($label, 'pangalan') !== false || stripos($label, 'name') !== false) $visitorName = $value;
+            if ($el['type'] === 'email') $visitorEmail = $value;
+            if (stripos($label, 'lokasyon') !== false || stripos($label, 'farm') !== false) $farmLocation = $value;
+            if (stripos($label, 'ikaw') !== false) $visitorType = $value;
+            if ($el['type'] === 'textarea') $initialMessage = $value;
+        }
+
+        // Create CRM form submission
+        $submissionId = DB::table('crm_form_submissions')->insertGetId([
+            'formId' => $form->id,
+            'submissionData' => json_encode($submissionData),
+            'submitterIp' => $request->ip(),
+            'submitterUserAgent' => $request->userAgent(),
+            'submitterEmail' => $visitorEmail,
+            'submitterName' => $visitorName,
+            'submissionStatus' => 'new',
+            'delete_status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // Increment form submission count
+        DB::table('crm_forms')->where('id', $form->id)->increment('submitCount');
+
+        // Execute trigger flow (create lead etc.)
+        $this->executeTriggerFlow($form, $submissionId, $submissionData);
 
         // Create new conversation
         $conversation = AsChatConversation::create([
-            'visitorName' => $request->name,
-            'visitorEmail' => $request->email,
-            'farmLocation' => $request->farm_location,
-            'visitorType' => $request->visitor_type,
-            'leadId' => $leadId,
+            'visitorName' => $visitorName ?? 'Visitor',
+            'visitorEmail' => $visitorEmail,
+            'farmLocation' => $farmLocation,
             'sessionId' => Str::uuid()->toString(),
             'status' => 'active',
             'deleteStatus' => 'active',
         ]);
 
-        // Send the initial message atomically with conversation creation
+        // Send the initial message
         $message = AsChatMessage::create([
             'conversationId' => $conversation->id,
             'senderType' => 'visitor',
             'senderId' => null,
-            'message' => $request->message,
+            'message' => $initialMessage ?? $visitorName . ' started a conversation.',
             'isRead' => false,
             'deleteStatus' => 'active',
         ]);
+
+        // Check for auto-reply
+        $settings = DB::table('as_chat_settings')
+            ->whereIn('settingKey', ['auto_reply_enabled', 'auto_reply_message', 'last_admin_heartbeat'])
+            ->pluck('settingValue', 'settingKey');
+
+        if (($settings['auto_reply_enabled'] ?? '0') === '1') {
+            $lastHeartbeat = $settings['last_admin_heartbeat'] ?? null;
+            $adminIsOnline = $lastHeartbeat && \Carbon\Carbon::parse($lastHeartbeat, 'Asia/Manila')->diffInSeconds(now('Asia/Manila')) < 30;
+
+            if (!$adminIsOnline && !empty($settings['auto_reply_message'])) {
+                AsChatMessage::create([
+                    'conversationId' => $conversation->id,
+                    'senderType' => 'system',
+                    'senderId' => null,
+                    'message' => $settings['auto_reply_message'],
+                    'isRead' => false,
+                    'deleteStatus' => 'active',
+                ]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -81,6 +196,146 @@ class ChatController extends Controller
                 'createdAt' => $message->created_at->format('M d, h:i A'),
             ],
         ]);
+    }
+
+    /**
+     * Execute the CRM form's trigger flow.
+     */
+    private function executeTriggerFlow($form, $submissionId, $submissionData)
+    {
+        $triggerFlow = json_decode($form->triggerFlow, true) ?? [];
+        if (empty($triggerFlow)) return;
+
+        foreach ($triggerFlow as $step) {
+            try {
+                $type = $step['type'] ?? null;
+                $config = $step['config'] ?? [];
+
+                if ($type === 'create_lead') {
+                    $this->createLeadFromTrigger($config, $form, $submissionData);
+                }
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+    }
+
+    /**
+     * Create a CRM lead from trigger flow config.
+     */
+    private function createLeadFromTrigger($config, $form, $submissionData)
+    {
+        $fieldMappings = $config['fieldMappings'] ?? [];
+        $formUsersId = $form->usersId;
+
+        $sourceName = $config['source'] ?? 'form';
+
+        $leadData = [
+            'usersId' => $formUsersId,
+            'leadStatus' => $config['status'] ?? 'new',
+            'leadSourceOther' => $sourceName,
+            'delete_status' => 'active',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        // Match source name to lead sources table
+        $sourceId = DB::table('crm_lead_sources')
+            ->where('sourceName', $sourceName)
+            ->where('delete_status', 'active')
+            ->value('id');
+        if ($sourceId) {
+            $leadData['leadSourceId'] = $sourceId;
+        }
+
+        $customFields = [];
+
+        foreach ($fieldMappings as $mapping) {
+            $formField = $mapping['formField'] ?? '';
+            $leadField = $mapping['leadField'] ?? '';
+            if (empty($formField) || empty($leadField)) continue;
+
+            $value = $submissionData[$formField] ?? null;
+            if ($value === null) continue;
+            if (is_array($value)) $value = implode(', ', $value);
+
+            if (str_starts_with($leadField, 'custom:')) {
+                $customFields[substr($leadField, 7)] = $value;
+            } elseif ($leadField === 'storeTargets') {
+                $leadData['_storeTargets'] = $value;
+            } else {
+                $leadData[$leadField] = $value;
+            }
+        }
+
+        // Handle fullName split
+        if (isset($leadData['fullName'])) {
+            $parts = explode(' ', $leadData['fullName'], 2);
+            $leadData['firstName'] = $parts[0];
+            $leadData['lastName'] = $parts[1] ?? '';
+            unset($leadData['fullName']);
+        }
+
+        // Check for duplicate by email
+        $existingLead = null;
+        if (!empty($leadData['email'])) {
+            $existingLead = DB::table('crm_leads')
+                ->where('delete_status', 'active')
+                ->where('usersId', $formUsersId)
+                ->where('email', $leadData['email'])
+                ->first();
+        }
+
+        // Extract store targets before inserting lead
+        $storeTargets = $leadData['_storeTargets'] ?? null;
+        unset($leadData['_storeTargets']);
+
+        if ($existingLead) {
+            $leadId = $existingLead->id;
+            $updateData = array_filter($leadData, fn($v, $k) => !empty($v) && !in_array($k, ['usersId', 'delete_status', 'created_at']), ARRAY_FILTER_USE_BOTH);
+            DB::table('crm_leads')->where('id', $leadId)->update($updateData);
+        } else {
+            $leadId = DB::table('crm_leads')->insertGetId($leadData);
+        }
+
+        // Handle store targets
+        if (!empty($storeTargets)) {
+            $storeIds = is_array($storeTargets) ? $storeTargets : array_map('trim', explode(',', $storeTargets));
+            foreach ($storeIds as $storeId) {
+                if (!$storeId) continue;
+                $exists = DB::table('crm_lead_store_targets')
+                    ->where('leadId', $leadId)
+                    ->where('storeId', $storeId)
+                    ->exists();
+                if (!$exists) {
+                    DB::table('crm_lead_store_targets')->insert([
+                        'leadId' => $leadId,
+                        'storeId' => $storeId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+
+        // Handle custom fields
+        $now = now();
+        foreach ($customFields as $fieldName => $fieldValue) {
+            $existing = DB::table('crm_lead_custom_data')
+                ->where('leadId', $leadId)
+                ->where('fieldName', $fieldName)
+                ->where('delete_status', 'active')
+                ->first();
+
+            if ($existing) {
+                DB::table('crm_lead_custom_data')->where('id', $existing->id)->update(['fieldValue' => $fieldValue, 'updated_at' => $now]);
+            } else {
+                DB::table('crm_lead_custom_data')->insert([
+                    'leadId' => $leadId, 'fieldName' => $fieldName, 'fieldValue' => $fieldValue,
+                    'usersId' => $formUsersId, 'delete_status' => 'active', 'created_at' => $now, 'updated_at' => $now,
+                ]);
+            }
+        }
     }
 
     /**
@@ -125,58 +380,6 @@ class ChatController extends Controller
                 'createdAt' => $message->created_at->format('M d, h:i A'),
             ],
         ]);
-    }
-
-    /**
-     * Create a CRM lead from chat visitor info.
-     */
-    private function createCrmLead(Request $request): ?int
-    {
-        try {
-            // Find the "Support Chat" lead source
-            $sourceId = DB::table('crm_lead_sources')
-                ->where('sourceName', 'Support Chat')
-                ->where('delete_status', 'active')
-                ->value('id');
-
-            $visitorTypeLabels = [
-                'farm_owner' => 'Farm Owner',
-                'farm_worker' => 'Farm Worker',
-                'other' => 'Other',
-            ];
-
-            // Split name into first/last if possible
-            $nameParts = explode(' ', trim($request->name), 2);
-            $firstName = $nameParts[0];
-            $lastName = $nameParts[1] ?? '';
-
-            $leadId = DB::table('crm_leads')->insertGetId([
-                'usersId' => 1, // System/admin owner
-                'leadStatus' => 'new',
-                'leadPriority' => 'medium',
-                'leadSourceId' => $sourceId,
-                'firstName' => $firstName,
-                'lastName' => $lastName,
-                'email' => $request->email,
-                'delete_status' => 'active',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // Store chat-specific data as custom fields
-            $now = now();
-            $customFields = [
-                ['leadId' => $leadId, 'fieldName' => 'Farm Location', 'fieldValue' => $request->farm_location, 'usersId' => 1, 'delete_status' => 'active', 'created_at' => $now, 'updated_at' => $now],
-                ['leadId' => $leadId, 'fieldName' => 'Visitor Type', 'fieldValue' => $visitorTypeLabels[$request->visitor_type] ?? $request->visitor_type, 'usersId' => 1, 'delete_status' => 'active', 'created_at' => $now, 'updated_at' => $now],
-            ];
-            DB::table('crm_lead_custom_data')->insert($customFields);
-
-            return $leadId;
-        } catch (\Exception $e) {
-            // Don't fail the chat if lead creation fails
-            report($e);
-            return null;
-        }
     }
 
     /**

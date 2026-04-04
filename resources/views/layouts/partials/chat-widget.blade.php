@@ -62,7 +62,7 @@
         {{-- Body --}}
         <div class="flex-1 flex flex-col bg-gray-50 overflow-hidden">
 
-            {{-- Pre-Chat Form --}}
+            {{-- Pre-Chat Form (Dynamic from CRM Form) --}}
                 <div x-show="!conversationId" class="flex-1 overflow-y-auto">
                     <div class="px-5 py-5">
                         <div class="mb-4">
@@ -70,159 +70,90 @@
                             <p class="text-gray-500 text-xs">Punan ang iyong impormasyon at sasagutin ka namin sa lalong madaling panahon.</p>
                         </div>
 
-                        <form @submit.prevent="validateAndStart()" class="space-y-3">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-1">Pangalan</label>
-                                <input
-                                    type="text"
-                                    x-model="visitorName"
-                                    @input="errors.visitorName = ''"
-                                    placeholder="Iyong pangalan"
-                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
-                                    :class="errors.visitorName ? 'border-red-400' : 'border-gray-200'"
-                                >
-                                <p x-show="errors.visitorName" x-text="errors.visitorName" class="text-red-500 text-xs mt-1"></p>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-1">Email</label>
-                                <input
-                                    type="text"
-                                    x-model="visitorEmail"
-                                    @input="errors.visitorEmail = ''"
-                                    placeholder="Iyong email address"
-                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
-                                    :class="errors.visitorEmail ? 'border-red-400' : 'border-gray-200'"
-                                >
-                                <p x-show="errors.visitorEmail" x-text="errors.visitorEmail" class="text-red-500 text-xs mt-1"></p>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-1">Lokasyon ng Farm <span class="text-gray-400 font-normal">(Probinsya)</span></label>
-                                <select
-                                    x-model="farmLocation"
-                                    @change="errors.farmLocation = ''"
-                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
-                                    :class="errors.farmLocation ? 'border-red-400' : 'border-gray-200'"
-                                >
-                                    <option value="">— Pumili ng Probinsya —</option>
-                                    <option value="Abra">Abra</option>
-                                    <option value="Agusan del Norte">Agusan del Norte</option>
-                                    <option value="Agusan del Sur">Agusan del Sur</option>
-                                    <option value="Aklan">Aklan</option>
-                                    <option value="Albay">Albay</option>
-                                    <option value="Antique">Antique</option>
-                                    <option value="Apayao">Apayao</option>
-                                    <option value="Aurora">Aurora</option>
-                                    <option value="Basilan">Basilan</option>
-                                    <option value="Bataan">Bataan</option>
-                                    <option value="Batanes">Batanes</option>
-                                    <option value="Batangas">Batangas</option>
-                                    <option value="Benguet">Benguet</option>
-                                    <option value="Biliran">Biliran</option>
-                                    <option value="Bohol">Bohol</option>
-                                    <option value="Bukidnon">Bukidnon</option>
-                                    <option value="Bulacan">Bulacan</option>
-                                    <option value="Cagayan">Cagayan</option>
-                                    <option value="Camarines Norte">Camarines Norte</option>
-                                    <option value="Camarines Sur">Camarines Sur</option>
-                                    <option value="Camiguin">Camiguin</option>
-                                    <option value="Capiz">Capiz</option>
-                                    <option value="Catanduanes">Catanduanes</option>
-                                    <option value="Cavite">Cavite</option>
-                                    <option value="Cebu">Cebu</option>
-                                    <option value="Cotabato">Cotabato</option>
-                                    <option value="Davao de Oro">Davao de Oro</option>
-                                    <option value="Davao del Norte">Davao del Norte</option>
-                                    <option value="Davao del Sur">Davao del Sur</option>
-                                    <option value="Davao Occidental">Davao Occidental</option>
-                                    <option value="Davao Oriental">Davao Oriental</option>
-                                    <option value="Dinagat Islands">Dinagat Islands</option>
-                                    <option value="Eastern Samar">Eastern Samar</option>
-                                    <option value="Guimaras">Guimaras</option>
-                                    <option value="Ifugao">Ifugao</option>
-                                    <option value="Ilocos Norte">Ilocos Norte</option>
-                                    <option value="Ilocos Sur">Ilocos Sur</option>
-                                    <option value="Iloilo">Iloilo</option>
-                                    <option value="Isabela">Isabela</option>
-                                    <option value="Kalinga">Kalinga</option>
-                                    <option value="Laguna">Laguna</option>
-                                    <option value="Lanao del Norte">Lanao del Norte</option>
-                                    <option value="Lanao del Sur">Lanao del Sur</option>
-                                    <option value="La Union">La Union</option>
-                                    <option value="Leyte">Leyte</option>
-                                    <option value="Maguindanao">Maguindanao</option>
-                                    <option value="Marinduque">Marinduque</option>
-                                    <option value="Masbate">Masbate</option>
-                                    <option value="Metro Manila">Metro Manila</option>
-                                    <option value="Misamis Occidental">Misamis Occidental</option>
-                                    <option value="Misamis Oriental">Misamis Oriental</option>
-                                    <option value="Mountain Province">Mountain Province</option>
-                                    <option value="Negros Occidental">Negros Occidental</option>
-                                    <option value="Negros Oriental">Negros Oriental</option>
-                                    <option value="Northern Samar">Northern Samar</option>
-                                    <option value="Nueva Ecija">Nueva Ecija</option>
-                                    <option value="Nueva Vizcaya">Nueva Vizcaya</option>
-                                    <option value="Occidental Mindoro">Occidental Mindoro</option>
-                                    <option value="Oriental Mindoro">Oriental Mindoro</option>
-                                    <option value="Palawan">Palawan</option>
-                                    <option value="Pampanga">Pampanga</option>
-                                    <option value="Pangasinan">Pangasinan</option>
-                                    <option value="Quezon">Quezon</option>
-                                    <option value="Quirino">Quirino</option>
-                                    <option value="Rizal">Rizal</option>
-                                    <option value="Romblon">Romblon</option>
-                                    <option value="Samar">Samar</option>
-                                    <option value="Sarangani">Sarangani</option>
-                                    <option value="Siquijor">Siquijor</option>
-                                    <option value="Sorsogon">Sorsogon</option>
-                                    <option value="South Cotabato">South Cotabato</option>
-                                    <option value="Southern Leyte">Southern Leyte</option>
-                                    <option value="Sultan Kudarat">Sultan Kudarat</option>
-                                    <option value="Sulu">Sulu</option>
-                                    <option value="Surigao del Norte">Surigao del Norte</option>
-                                    <option value="Surigao del Sur">Surigao del Sur</option>
-                                    <option value="Tarlac">Tarlac</option>
-                                    <option value="Tawi-Tawi">Tawi-Tawi</option>
-                                    <option value="Zambales">Zambales</option>
-                                    <option value="Zamboanga del Norte">Zamboanga del Norte</option>
-                                    <option value="Zamboanga del Sur">Zamboanga del Sur</option>
-                                    <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
-                                </select>
-                                <p x-show="errors.farmLocation" x-text="errors.farmLocation" class="text-red-500 text-xs mt-1"></p>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-1">Ikaw Ay</label>
-                                <select
-                                    x-model="visitorType"
-                                    @change="errors.visitorType = ''"
-                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
-                                    :class="errors.visitorType ? 'border-red-400' : 'border-gray-200'"
-                                >
-                                    <option value="">— Pumili —</option>
-                                    <option value="farm_owner">Farm Owner</option>
-                                    <option value="farm_worker">Farm Worker</option>
-                                    <option value="other">Iba Pa</option>
-                                </select>
-                                <p x-show="errors.visitorType" x-text="errors.visitorType" class="text-red-500 text-xs mt-1"></p>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-medium mb-1">Mensahe</label>
-                                <textarea
-                                    x-model="initialMessage"
-                                    @input="errors.initialMessage = ''"
-                                    placeholder="Ano ang maitutulong namin sa iyo?"
-                                    rows="3"
-                                    class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors resize-none"
-                                    :class="errors.initialMessage ? 'border-red-400' : 'border-gray-200'"
-                                ></textarea>
-                                <p x-show="errors.initialMessage" x-text="errors.initialMessage" class="text-red-500 text-xs mt-1"></p>
-                            </div>
+                        {{-- Loading state --}}
+                        <div x-show="formFieldsLoading" class="text-center py-6">
+                            <svg class="animate-spin w-6 h-6 mx-auto text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <p class="text-gray-400 text-xs mt-2">Naglo-load...</p>
+                        </div>
+
+                        {{-- Dynamic form --}}
+                        <form x-show="!formFieldsLoading && formFields.length > 0" @submit.prevent="validateAndStart()" class="space-y-3">
+                            <template x-for="field in formFields" :key="field.id">
+                                <div>
+                                    <label class="block text-gray-700 text-sm font-medium mb-1" x-text="field.label"></label>
+
+                                    {{-- Text input --}}
+                                    <template x-if="field.type === 'text'">
+                                        <div>
+                                            <input
+                                                type="text"
+                                                :placeholder="field.placeholder || ''"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Email input --}}
+                                    <template x-if="field.type === 'email'">
+                                        <div>
+                                            <input
+                                                type="text"
+                                                :placeholder="field.placeholder || ''"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Select dropdown --}}
+                                    <template x-if="field.type === 'select'">
+                                        <div>
+                                            <select
+                                                x-model="formData[field.id]"
+                                                @change="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                                <option value="" x-text="field.placeholder || '— Pumili —'"></option>
+                                                <template x-for="opt in (field.options || [])" :key="opt">
+                                                    <option :value="opt" x-text="opt"></option>
+                                                </template>
+                                            </select>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Textarea --}}
+                                    <template x-if="field.type === 'textarea'">
+                                        <div>
+                                            <textarea
+                                                :placeholder="field.placeholder || ''"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                rows="3"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors resize-none"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            ></textarea>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+
                             <p x-show="chatError" x-text="chatError" class="text-red-500 text-xs text-center mb-1"></p>
                             <button
                                 type="submit"
                                 :disabled="isLoading"
                                 class="w-full py-2.5 bg-brand-yellow hover:bg-brand-yellow-hover text-brand-dark font-semibold rounded-xl transition-colors text-sm disabled:opacity-50"
                             >
-                                <span x-show="!isLoading">Simulan ang Chat</span>
+                                <span x-show="!isLoading" class="inline-flex items-center gap-2">Simulan ang Chat <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></span>
                                 <span x-show="isLoading" class="flex items-center justify-center gap-2">
                                     <svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                     Naglo-load...
@@ -240,32 +171,45 @@
                         class="flex-1 overflow-y-auto px-5 py-4 space-y-3"
                     >
                         <template x-for="msg in messages" :key="msg.id">
-                            <div :class="msg.senderType === 'visitor' ? 'flex justify-end' : 'flex justify-start'">
-                                {{-- Admin avatar --}}
-                                <div x-show="msg.senderType === 'admin'" class="w-7 h-7 rounded-full bg-brand-yellow flex items-center justify-center flex-shrink-0 mr-2 mt-1">
-                                    <span class="text-brand-dark text-xs font-bold">A</span>
+                            <div>
+                                {{-- System message --}}
+                                <div x-show="msg.senderType === 'system'" class="flex justify-center my-1">
+                                    <div class="max-w-[85%] text-center">
+                                        <div class="bg-gray-100 border border-gray-200 rounded-xl px-4 py-2.5 text-xs text-gray-500 leading-relaxed">
+                                            <span x-text="msg.message"></span>
+                                        </div>
+                                        <div class="text-[10px] text-gray-400 mt-1" x-text="msg.createdAt"></div>
+                                    </div>
                                 </div>
 
-                                <div class="max-w-[75%]">
-                                    {{-- Sender name --}}
-                                    <div
-                                        :class="msg.senderType === 'visitor' ? 'text-right' : 'text-left'"
-                                        class="text-[11px] text-gray-500 font-medium mb-0.5 px-1"
-                                        x-text="msg.senderType === 'visitor' ? 'Ikaw' : 'Admin'"
-                                    ></div>
-                                    <div
-                                        :class="msg.senderType === 'visitor'
-                                            ? 'chat-green-bubble text-white rounded-2xl rounded-br-md'
-                                            : 'bg-white text-gray-900 border border-gray-200 rounded-2xl rounded-bl-md'"
-                                        class="px-4 py-2.5 text-sm leading-relaxed"
-                                    >
-                                        <span x-text="msg.message"></span>
+                                {{-- Visitor / Admin message --}}
+                                <div x-show="msg.senderType !== 'system'" :class="msg.senderType === 'visitor' ? 'flex justify-end' : 'flex justify-start'">
+                                    {{-- Admin avatar --}}
+                                    <div x-show="msg.senderType === 'admin'" class="w-7 h-7 rounded-full bg-brand-yellow flex items-center justify-center flex-shrink-0 mr-2 mt-1">
+                                        <span class="text-brand-dark text-xs font-bold">A</span>
                                     </div>
-                                    <div
-                                        :class="msg.senderType === 'visitor' ? 'text-right' : 'text-left'"
-                                        class="text-[11px] text-gray-400 mt-1 px-1"
-                                        x-text="msg.createdAt"
-                                    ></div>
+
+                                    <div class="max-w-[75%]">
+                                        {{-- Sender name --}}
+                                        <div
+                                            :class="msg.senderType === 'visitor' ? 'text-right' : 'text-left'"
+                                            class="text-[11px] text-gray-500 font-medium mb-0.5 px-1"
+                                            x-text="msg.senderType === 'visitor' ? 'Ikaw' : 'Admin'"
+                                        ></div>
+                                        <div
+                                            :class="msg.senderType === 'visitor'
+                                                ? 'chat-green-bubble text-white rounded-2xl rounded-br-md'
+                                                : 'bg-white text-gray-900 border border-gray-200 rounded-2xl rounded-bl-md'"
+                                            class="px-4 py-2.5 text-sm leading-relaxed"
+                                        >
+                                            <span x-text="msg.message"></span>
+                                        </div>
+                                        <div
+                                            :class="msg.senderType === 'visitor' ? 'text-right' : 'text-left'"
+                                            class="text-[11px] text-gray-400 mt-1 px-1"
+                                            x-text="msg.createdAt"
+                                        ></div>
+                                    </div>
                                 </div>
                             </div>
                         </template>
@@ -334,11 +278,9 @@ function chatWidget() {
         isOpen: false,
         conversationId: null,
         sessionId: null,
-        visitorName: '',
-        visitorEmail: '',
-        farmLocation: '',
-        visitorType: '',
-        initialMessage: '',
+        formFields: [],
+        formFieldsLoading: true,
+        formData: {},
         newMessage: '',
         messages: [],
         unreadCount: 0,
@@ -350,6 +292,9 @@ function chatWidget() {
         pollInterval: null,
 
         init() {
+            // Load form fields from CRM
+            this.loadFormFields();
+
             // Restore session from localStorage
             const saved = localStorage.getItem('anisenso_chat_session');
             if (saved) {
@@ -357,10 +302,6 @@ function chatWidget() {
                     const session = JSON.parse(saved);
                     this.conversationId = session.conversationId;
                     this.sessionId = session.sessionId;
-                    this.visitorName = session.visitorName || '';
-                    this.visitorEmail = session.visitorEmail || '';
-                    this.farmLocation = session.farmLocation || '';
-                    this.visitorType = session.visitorType || '';
                     if (this.conversationId) {
                         this.fetchMessages();
                         this.startPolling();
@@ -368,6 +309,30 @@ function chatWidget() {
                 } catch (e) {
                     localStorage.removeItem('anisenso_chat_session');
                 }
+            }
+        },
+
+        async loadFormFields() {
+            try {
+                const res = await fetch('{{ route("chat.form-fields") }}', {
+                    headers: { 'Accept': 'application/json' },
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.formFields = data.fields;
+                    // Initialize formData for each field
+                    data.fields.forEach(f => {
+                        if (f.type === 'hidden') {
+                            this.formData[f.id] = f.value || f.defaultValue || '';
+                        } else {
+                            this.formData[f.id] = '';
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to load form fields:', e);
+            } finally {
+                this.formFieldsLoading = false;
             }
         },
 
@@ -385,29 +350,19 @@ function chatWidget() {
             this.errors = {};
             let valid = true;
 
-            if (!this.visitorName.trim()) {
-                this.errors.visitorName = 'Mangyaring ilagay ang iyong pangalan.';
-                valid = false;
-            }
-            if (!this.visitorEmail.trim()) {
-                this.errors.visitorEmail = 'Mangyaring ilagay ang iyong email.';
-                valid = false;
-            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.visitorEmail.trim())) {
-                this.errors.visitorEmail = 'Mangyaring maglagay ng wastong email address.';
-                valid = false;
-            }
-            if (!this.farmLocation) {
-                this.errors.farmLocation = 'Mangyaring pumili ng probinsya.';
-                valid = false;
-            }
-            if (!this.visitorType) {
-                this.errors.visitorType = 'Mangyaring pumili ng uri.';
-                valid = false;
-            }
-            if (!this.initialMessage.trim()) {
-                this.errors.initialMessage = 'Mangyaring ilagay ang iyong mensahe.';
-                valid = false;
-            }
+            this.formFields.forEach(field => {
+                const val = this.formData[field.id];
+                if (field.required && (!val || (typeof val === 'string' && !val.trim()))) {
+                    this.errors[field.id] = 'Kinakailangan ang field na ito.';
+                    valid = false;
+                }
+                if (field.type === 'email' && val && val.trim()) {
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
+                        this.errors[field.id] = 'Mangyaring maglagay ng wastong email address.';
+                        valid = false;
+                    }
+                }
+            });
 
             if (valid) this.startChat();
         },
@@ -416,14 +371,7 @@ function chatWidget() {
             this.isLoading = true;
             this.chatError = '';
 
-            const payload = {
-                name: this.visitorName,
-                email: this.visitorEmail,
-                farm_location: this.farmLocation,
-                visitor_type: this.visitorType,
-                message: this.initialMessage,
-                session_id: this.sessionId,
-            };
+            const payload = { ...this.formData, session_id: this.sessionId };
 
             for (let attempt = 1; attempt <= 2; attempt++) {
                 try {
@@ -444,7 +392,6 @@ function chatWidget() {
                     if (data.success) {
                         this.conversationId = data.conversation.id;
                         this.sessionId = data.conversation.sessionId;
-                        this.initialMessage = '';
 
                         if (data.message) {
                             this.messages.push(data.message);
@@ -473,7 +420,6 @@ function chatWidget() {
             const savedText = text;
             this.newMessage = '';
 
-            // Reset textarea height
             if (this.$refs.chatInput) {
                 this.$refs.chatInput.style.height = 'auto';
             }
@@ -493,10 +439,7 @@ function chatWidget() {
                 });
 
                 if (!res.ok) {
-                    if (res.status === 404) {
-                        this.chatStatus = 'closed';
-                    }
-                    // Restore the message so the visitor can retry
+                    if (res.status === 404) this.chatStatus = 'closed';
                     this.newMessage = savedText;
                     return;
                 }
@@ -522,9 +465,7 @@ function chatWidget() {
 
             try {
                 const res = await fetch(`{{ route("chat.messages") }}?conversation_id=${this.conversationId}`, {
-                    headers: {
-                        'Accept': 'application/json',
-                    },
+                    headers: { 'Accept': 'application/json' },
                 });
 
                 const data = await res.json();
@@ -534,7 +475,6 @@ function chatWidget() {
                     const prevStatus = this.chatStatus;
                     this.messages = data.messages;
 
-                    // Count new admin messages as unread if chat is minimized
                     if (!this.isOpen && data.messages.length > prevCount) {
                         const newMsgs = data.messages.slice(prevCount);
                         const newAdminMsgs = newMsgs.filter(m => m.senderType === 'admin').length;
@@ -545,20 +485,17 @@ function chatWidget() {
                         this.$nextTick(() => this.scrollToBottom());
                     }
 
-                    // If admin reopened a closed conversation, resume normal polling
                     if (data.status === 'active' && prevStatus === 'closed') {
                         this.chatStatus = 'active';
                         this.startPolling();
                     }
 
-                    // Slow-poll when closed so visitor can detect a reopen
                     if (data.status === 'closed' && prevStatus !== 'closed') {
                         this.chatStatus = 'closed';
                         this.stopPolling();
                         this.pollInterval = setInterval(() => this.fetchMessages(), 3000);
                     }
 
-                    // Default status sync for other cases
                     this.chatStatus = data.status;
                 } else if (!res.ok) {
                     if (res.status === 404) this.resetChat();
@@ -584,10 +521,6 @@ function chatWidget() {
             localStorage.setItem('anisenso_chat_session', JSON.stringify({
                 conversationId: this.conversationId,
                 sessionId: this.sessionId,
-                visitorName: this.visitorName,
-                visitorEmail: this.visitorEmail,
-                farmLocation: this.farmLocation,
-                visitorType: this.visitorType,
             }));
         },
 
@@ -595,11 +528,7 @@ function chatWidget() {
             this.stopPolling();
             this.conversationId = null;
             this.sessionId = null;
-            this.visitorName = '';
-            this.visitorEmail = '';
-            this.farmLocation = '';
-            this.visitorType = '';
-            this.initialMessage = '';
+            this.formFields.forEach(f => { this.formData[f.id] = ''; });
             this.messages = [];
             this.chatStatus = 'active';
             this.chatError = '';
@@ -619,12 +548,11 @@ function chatWidget() {
         downloadChatLog() {
             let text = 'Ani-Senso Chat Support - Talaan ng Usapan\n';
             text += '==========================================\n';
-            text += 'Pangalan: ' + this.visitorName + '\n';
             text += 'Petsa: ' + new Date().toLocaleDateString('fil-PH', { year: 'numeric', month: 'long', day: 'numeric' }) + '\n';
             text += '==========================================\n\n';
 
             this.messages.forEach(function(msg) {
-                const sender = msg.senderType === 'visitor' ? 'Ikaw' : 'Admin';
+                const sender = msg.senderType === 'visitor' ? 'Ikaw' : (msg.senderType === 'system' ? 'System' : 'Admin');
                 text += '[' + msg.createdAt + '] ' + sender + ':\n';
                 text += msg.message + '\n\n';
             });
