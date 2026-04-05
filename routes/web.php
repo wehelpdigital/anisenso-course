@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,9 +40,9 @@ Route::get('/get-online-course', function () {
     return view('courses.online-course');
 })->name('courses.online');
 
-Route::get('/join-community', function () {
-    return view('community.join');
-})->name('community.join');
+Route::get('/join-community', [CommunityController::class, 'show'])->name('community.join');
+Route::get('/community/form-fields', [CommunityController::class, 'getFormFields'])->name('community.form-fields');
+Route::post('/community/submit', [CommunityController::class, 'submit'])->name('community.submit');
 
 // Checkout routes
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');

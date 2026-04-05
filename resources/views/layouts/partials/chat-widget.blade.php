@@ -80,7 +80,7 @@
                         <form x-show="!formFieldsLoading && formFields.length > 0" @submit.prevent="validateAndStart()" class="space-y-3">
                             <template x-for="field in formFields" :key="field.id">
                                 <div>
-                                    <label class="block text-gray-700 text-sm font-medium mb-1" x-text="field.label"></label>
+                                    <label x-show="field.type !== 'hidden' && field.type !== 'single_checkbox'" class="block text-gray-700 text-sm font-medium mb-1" x-text="field.label"></label>
 
                                     {{-- Text input --}}
                                     <template x-if="field.type === 'text'">
@@ -130,6 +130,38 @@
                                         </div>
                                     </template>
 
+                                    {{-- Phone input --}}
+                                    <template x-if="field.type === 'phone'">
+                                        <div>
+                                            <input
+                                                type="tel"
+                                                :placeholder="field.placeholder || ''"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Number input --}}
+                                    <template x-if="field.type === 'number'">
+                                        <div>
+                                            <input
+                                                type="number"
+                                                :placeholder="field.placeholder || ''"
+                                                :min="field.min"
+                                                :max="field.max"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
                                     {{-- Textarea --}}
                                     <template x-if="field.type === 'textarea'">
                                         <div>
@@ -141,6 +173,98 @@
                                                 class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors resize-none"
                                                 :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
                                             ></textarea>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Radio buttons --}}
+                                    <template x-if="field.type === 'radio'">
+                                        <div>
+                                            <div :class="field.inline ? 'flex flex-wrap gap-3' : 'space-y-2'">
+                                                <template x-for="opt in (field.options || [])" :key="opt">
+                                                    <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                                        <input
+                                                            type="radio"
+                                                            :name="field.id"
+                                                            :value="opt"
+                                                            x-model="formData[field.id]"
+                                                            @change="errors[field.id] = ''"
+                                                            class="w-4 h-4 text-brand-yellow focus:ring-brand-yellow/50"
+                                                        >
+                                                        <span x-text="opt"></span>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Checkboxes (multiple) --}}
+                                    <template x-if="field.type === 'checkbox'">
+                                        <div>
+                                            <div :class="field.inline ? 'flex flex-wrap gap-3' : 'space-y-2'">
+                                                <template x-for="opt in (field.options || [])" :key="opt">
+                                                    <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                                        <input
+                                                            type="checkbox"
+                                                            :value="opt"
+                                                            @change="
+                                                                let arr = Array.isArray(formData[field.id]) ? formData[field.id] : [];
+                                                                if ($event.target.checked) { arr.push(opt); } else { arr = arr.filter(v => v !== opt); }
+                                                                formData[field.id] = arr;
+                                                                errors[field.id] = '';
+                                                            "
+                                                            :checked="Array.isArray(formData[field.id]) && formData[field.id].includes(opt)"
+                                                            class="w-4 h-4 rounded text-brand-yellow focus:ring-brand-yellow/50"
+                                                        >
+                                                        <span x-text="opt"></span>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Single checkbox --}}
+                                    <template x-if="field.type === 'single_checkbox'">
+                                        <div>
+                                            <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                                                <input
+                                                    type="checkbox"
+                                                    x-model="formData[field.id]"
+                                                    @change="errors[field.id] = ''"
+                                                    class="w-4 h-4 rounded text-brand-yellow focus:ring-brand-yellow/50"
+                                                >
+                                                <span x-text="field.label"></span>
+                                            </label>
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Date picker --}}
+                                    <template x-if="field.type === 'date'">
+                                        <div>
+                                            <input
+                                                type="date"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
+                                            <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
+                                        </div>
+                                    </template>
+
+                                    {{-- Time picker --}}
+                                    <template x-if="field.type === 'time'">
+                                        <div>
+                                            <input
+                                                type="time"
+                                                x-model="formData[field.id]"
+                                                @input="errors[field.id] = ''"
+                                                class="w-full px-3 py-2 border-2 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand-yellow/50 focus:border-brand-yellow transition-colors"
+                                                :class="errors[field.id] ? 'border-red-400' : 'border-gray-200'"
+                                            >
                                             <p x-show="errors[field.id]" x-text="errors[field.id]" class="text-red-500 text-xs mt-1"></p>
                                         </div>
                                     </template>
@@ -324,6 +448,10 @@ function chatWidget() {
                     data.fields.forEach(f => {
                         if (f.type === 'hidden') {
                             this.formData[f.id] = f.value || f.defaultValue || '';
+                        } else if (f.type === 'checkbox') {
+                            this.formData[f.id] = [];
+                        } else if (f.type === 'single_checkbox') {
+                            this.formData[f.id] = false;
                         } else {
                             this.formData[f.id] = '';
                         }
@@ -352,13 +480,20 @@ function chatWidget() {
 
             this.formFields.forEach(field => {
                 const val = this.formData[field.id];
-                if (field.required && (!val || (typeof val === 'string' && !val.trim()))) {
+                const isEmpty = Array.isArray(val) ? val.length === 0 : (typeof val === 'boolean' ? !val : (!val || (typeof val === 'string' && !val.trim())));
+                if (field.required && isEmpty) {
                     this.errors[field.id] = 'Kinakailangan ang field na ito.';
                     valid = false;
                 }
                 if (field.type === 'email' && val && val.trim()) {
                     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim())) {
                         this.errors[field.id] = 'Mangyaring maglagay ng wastong email address.';
+                        valid = false;
+                    }
+                }
+                if (field.type === 'phone' && val && val.trim()) {
+                    if (!/^(09\d{9}|63\d{10})$/.test(val.trim())) {
+                        this.errors[field.id] = 'Format: 09XXXXXXXXX o 63XXXXXXXXXX';
                         valid = false;
                     }
                 }
@@ -528,7 +663,11 @@ function chatWidget() {
             this.stopPolling();
             this.conversationId = null;
             this.sessionId = null;
-            this.formFields.forEach(f => { this.formData[f.id] = ''; });
+            this.formFields.forEach(f => {
+                if (f.type === 'checkbox') this.formData[f.id] = [];
+                else if (f.type === 'single_checkbox') this.formData[f.id] = false;
+                else this.formData[f.id] = '';
+            });
             this.messages = [];
             this.chatStatus = 'active';
             this.chatError = '';

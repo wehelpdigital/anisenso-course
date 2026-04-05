@@ -199,17 +199,19 @@
     $awardCtaText = $awardSection?->getSetting("ctaText", "Learn More");
     $awardCtaUrl = $awardSection?->getSetting("ctaUrl", "/about");
 @endphp
-<section class="relative py-24 overflow-hidden" style="background-color: #2d5016;">
-    <!-- YouTube Video Background -->
+<section class="relative py-24 overflow-hidden" style="background-color: #2d5016;" x-data="{ loadVideo: false }" x-intersect:enter.once="loadVideo = true">
+    <!-- YouTube Video Background (lazy-loaded) -->
     @if($awardVideoUrl)
-    <div class="absolute inset-0 overflow-hidden">
-        <iframe
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] min-w-full min-h-full pointer-events-none"
-            src="{{ $awardVideoUrl }}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
+    <div class="absolute inset-0 overflow-hidden" x-show="loadVideo">
+        <template x-if="loadVideo">
+            <iframe
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] min-w-full min-h-full pointer-events-none"
+                :src="'{{ $awardVideoUrl }}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1'"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen>
+            </iframe>
+        </template>
     </div>
     @endif
     <!-- Dark Green Overlay -->
@@ -643,9 +645,9 @@
     $carouselItems = $seasonalSection?->activeItems->where("itemType", "carousel") ?? collect();
 @endphp
 <!-- Seasonal CTA Section - Video Background -->
-<section class="relative py-16 md:py-24 overflow-hidden" style="background-color: #2d5016;">
-    <!-- YouTube Video Background -->
-    <div class="absolute inset-0 overflow-hidden">
+<section class="relative py-16 md:py-24 overflow-hidden" style="background-color: #2d5016;" x-data="{ loadVideo: false }" x-intersect:enter.once="loadVideo = true">
+    <!-- YouTube Video Background (lazy-loaded) -->
+    <div class="absolute inset-0 overflow-hidden" x-show="loadVideo">
         @php
             // Extract video ID for the playlist parameter
             $videoId = 'qVk6thNT_uM';
@@ -653,13 +655,15 @@
                 $videoId = $matches[1];
             }
         @endphp
-        <iframe
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] min-w-full min-h-full pointer-events-none"
-            src="{{ $seasonalVideoUrl }}?autoplay=1&mute=1&loop=1&playlist={{ $videoId }}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
+        <template x-if="loadVideo">
+            <iframe
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] min-w-full min-h-full pointer-events-none"
+                :src="'{{ $seasonalVideoUrl }}?autoplay=1&mute=1&loop=1&playlist={{ $videoId }}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1'"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen>
+            </iframe>
+        </template>
     </div>
     <!-- Dark Green Overlay -->
     <div class="absolute inset-0 bg-brand-green-dark/85"></div>
@@ -1137,16 +1141,18 @@
 </section>
 
 <!-- Testimonials Section -->
-<section class="relative py-24 overflow-hidden" style="background-color: #2d5016;" x-data="{ shown: false }" x-intersect:enter.once="shown = true">
-    <!-- YouTube Video Background -->
-    <div class="absolute inset-0 overflow-hidden">
-        <iframe
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] min-w-full min-h-full pointer-events-none"
-            src="https://www.youtube.com/embed/IGUPJ0jcs0E?autoplay=1&mute=1&loop=1&playlist=IGUPJ0jcs0E&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-            frameborder="0"
-            allow="autoplay; encrypted-media"
-            allowfullscreen>
-        </iframe>
+<section class="relative py-24 overflow-hidden" style="background-color: #2d5016;" x-data="{ shown: false, loadVideo: false }" x-intersect:enter.once="shown = true; loadVideo = true">
+    <!-- YouTube Video Background (lazy-loaded) -->
+    <div class="absolute inset-0 overflow-hidden" x-show="loadVideo">
+        <template x-if="loadVideo">
+            <iframe
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300%] h-[300%] min-w-full min-h-full pointer-events-none"
+                src="https://www.youtube.com/embed/IGUPJ0jcs0E?autoplay=1&mute=1&loop=1&playlist=IGUPJ0jcs0E&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
+                frameborder="0"
+                allow="autoplay; encrypted-media"
+                allowfullscreen>
+            </iframe>
+        </template>
     </div>
     <!-- Dark Green Overlay -->
     <div class="absolute inset-0 bg-brand-green-dark/90"></div>
@@ -1200,7 +1206,7 @@
                 </p>
                 <div class="flex items-center gap-4 pt-4 border-t border-gray-100">
                     @if($item->image)
-                        <img src="{{ asset($item->image) }}" alt="{{ $item->title }}" class="w-12 h-12 rounded-full object-cover">
+                        <img src="{{ config('app.btc_check_url') }}/{{ ltrim($item->image, '/') }}" alt="{{ $item->title }}" class="w-12 h-12 rounded-full object-cover">
                     @else
                         <div class="w-12 h-12 {{ $color === 'green' ? 'bg-brand-green/20' : 'bg-brand-yellow/20' }} rounded-full flex items-center justify-center">
                             <span class="{{ $color === 'green' ? 'text-brand-green' : 'text-brand-dark' }} font-bold text-lg">{{ $initials }}</span>
